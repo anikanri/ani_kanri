@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght=100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./css/style.css">
+    <title>アニ管理 - 利用規約・プライバシーポリシー</title>
+    <style>
+        html, body { height: 100%; margin: 0; }
+        body { display: flex; flex-direction: column; font-family: 'Noto Sans JP', sans-serif; background-color: #f4f6f9; color: #333; }
+        main { flex: 1; padding: 120px 0 60px; }
+        .container { max-width: 800px; margin: 0 auto; width: 90%; }
+        
+        /* 📱 統一ヘッダー */
+        header { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px); border-bottom: 1px solid #1e293b; position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; box-sizing: border-box; }
+        .row { max-width: 1400px; margin: 0 auto; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-weight: 900; font-size: 24px; color: white; letter-spacing: -0.5px; text-decoration: none; }
+        .menu { display: flex; gap: 12px; list-style: none; margin: 0; padding: 0; align-items: center; }
+        .menu a { color: #cbd5e1; text-decoration: none; font-size: 16px; font-weight: 800; padding: 10px 22px; border-radius: 24px; transition: all 0.25s ease; }
+        .menu a:hover { color: white; background: rgba(255, 255, 255, 0.08); }
+
+        /* 📑 タブ切り替えスイッチ */
+        .tab-container { display: flex; gap: 10px; margin-bottom: 30px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+        .tab-btn { background: none; border: none; padding: 10px 20px; font-size: 16px; font-weight: 800; color: #64748b; cursor: pointer; border-radius: 8px; transition: all 0.2s; }
+        .tab-btn.active { background: #2563eb; color: white; }
+
+        /* 📄 本文エリア */
+        .content-box { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; line-height: 1.8; box-sizing: border-box; }
+        .policy-section { display: none; }
+        .policy-section.active { display: block; }
+        
+        h2 { font-size: 22px; font-weight: 900; color: #0f172a; margin-top: 0; margin-bottom: 24px; border-left: 5px solid #2563eb; padding-left: 12px; }
+        h3 { font-size: 16px; font-weight: 800; color: #1e293b; margin-top: 24px; margin-bottom: 8px; }
+        p, li { font-size: 14px; color: #475569; font-weight: 500; }
+        ul { padding-left: 20px; margin-bottom: 16px; }
+        li { margin-bottom: 6px; }
+        .date { text-align: right; color: #94a3b8; font-size: 12px; margin-top: 40px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="row"> 
+         <a href="./" class="logo">アニ管理</a>
+         <nav>
+            <ul class="menu">      
+              <li><a href="./search.html">検索</a></li>
+              <li><a href="./rating.html">評価</a></li>
+              <li><a href="./users/index.html">マイページ</a></li>
+            </ul>
+         </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            
+            <div class="tab-container">
+                <button class="tab-btn active" onclick="switchTab('terms')">利用規約</button>
+                <button class="tab-btn" onclick="switchTab('privacy')">プライバシーポリシー</button>
+            </div>
+
+            <div class="content-box">
+                <div id="terms-content" class="policy-section active">
+                    <h2>利用規約</h2>
+                    <p>この利用規約（以下，「本規約」といいます。）は，「アニ管理」（以下，「当サイト」といいます。）が提供するサービス（以下，「本サービス」といいます。）の利用条件を定めるものです。ユーザーの皆様には，本規約に従って本サービスをご利用いただきます。</p>
+
+                    <h3>第1条（適用）</h3>
+                    <p>本規約は，ユーザーと当サイトとの間の本サービスの利用に関わる一切の関係に適用されるものとします。</p>
+
+                    <h3>第2条（データの管理）</h3>
+                    <p>本サービスは、ユーザーのアニメ視聴記録や評価データをブラウザ内のLocalStorage（ローカルストレージ）に保存します。データのバックアップや端末変更時の引き継ぎ等はユーザー自身の責任で行うものとし、ブラウザのキャッシュ消去等によりデータが消失した場合、当サイトは一切の責任を負いません。</p>
+
+                    <h3>第3条（禁止事項）</h3>
+                    <p>ユーザーは，本サービスの利用にあたり，以下の行為をしてはなりません。</p>
+                    <ul>
+                        <li>当サイトのネットワークまたはシステム等に過度な負荷をかける行為</li>
+                        <li>当サイトが利用している外部API（Annict API等）の提供元の規約に違反する行為</li>
+                        <li>本サービスの運営を妨害するおそれのある行為</li>
+                        <li>その他，当サイトが不適切と判断する行為</li>
+                    </ul>
+
+                    <h3>第4条（本サービスの提供の停止等）</h3>
+                    <p>当サイトは，以下のいずれかの事由があると判断した場合，ユーザーに事前に通知することなく本サービスの全部または一部の提供を停止または中断することができるものとします。</p>
+                    <ul>
+                        <li>本サービスに係るコンピュータシステムの保守点検または更新を行う場合</li>
+                        <li>外部APIの停止、仕様変更等により本サービスの提供が困難となった場合</li>
+                        <li>その他，当サイトが本サービスの提供が困難と判断した場合</li>
+                    </ul>
+
+                    <h3>第5条（免責事項）</h3>
+                    <ul>
+                        <li>当サイトは、本サービス（外部APIから取得するアニメ情報を含みます）に事実上または法律上の瑕疵（安全性、信頼性、正確性、完全性、有効性、特定の目的への適合性、セキュリティなどに関する欠陥、エラーやバグ、権利侵害などを含みます。）がないことを明示的にも黙示的にも保証しておりません。</li>
+                        <li>当サイトは，本サービスに起因してユーザーに生じたあらゆる損害について、一切の責任を負いません。</li>
+                    </ul>
+
+                    <h3>第6条（利用規約の変更）</h3>
+                    <p>当サイトは，必要と判断した場合には，ユーザーに通知することなくいつでも本規約を変更することができるものとします。なお，本規約の変更後，本サービスの利用を開始した場合には，ユーザーは変更後の規約に同意したものとみなします。</p>
+
+                    <p class="date">2026年5月31日 制定</p>
+                </div>
+
+                <div id="privacy-content" class="policy-section">
+                    <h2>プライバシーポリシー</h2>
+                    <p>「アニ管理」（以下，「当サイト」といいます。）は，本サービスにおけるユーザーのプライバシー情報の取扱いについて，以下のとおりプライバシーポリシー（以下，「本ポリシー」といいます。）を定めます。</p>
+
+                    <h3>第1条（個人情報の収集について）</h3>
+                    <p>本サービスは、ユーザーの氏名、メールアドレス、パスワードなどの個人情報をサーバー等に収集・保存する仕組みを有していません。ユーザーが入力したアニメの視聴記録や評価データは、ユーザーご自身のブラウザ（LocalStorage）内のみに保存されます。</p>
+
+                    <h3>第2条（外部APIの利用）</h3>
+                    <p>当サイトでは、アニメ情報の取得および検索機能のために「Annict API」を利用しています。検索時に入力されたキーワードは同APIに送信されますが、これによってユーザー個人を特定する情報が外部に送信されることはありません。</p>
+
+                    <h3>第3条（アクセス解析ツールについて）</h3>
+                    <p>当サイトでは、将来的なサービス改善を目的として、アクセス解析ツール（Googleアナリティクス等）を導入する場合があります。これらのツールはトラフィックデータの収集のためにクッキー（Cookie）を使用していますが、データは匿名で収集されており、個人を特定するものではありません。</p>
+
+                    <h3>第4条（プライバシーポリシーの変更）</h3>
+                    <p>本ポリシーの内容は，ユーザーに通知することなく，変更することができるものとします。当サイトが別途定める場合を除いて，変更後のプライバシーポリシーは，当サイトに掲載したときから効力を生じるものとします。</p>
+
+                    <h3>第5条（お問い合わせ窓口）</h3>
+                    <p>本ポリシーに関するお問い合わせ、または不具合のご報告等は、[anihyouka.anime@gmail.com] までお願いいたします。</p>
+
+                    <p class="date">2026年5月31日 制定</p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer style="background-color: #0f172a; color: #94a3b8; padding: 40px 20px; text-align: center; font-size: 14px;">
+    <p style="margin: 0 0 12px 0;">
+        <a href="./terms.html" style="color: #94a3b8; text-decoration: none; font-weight: 800; font-size: 13px; transition: color 0.2s;" onmouseover="this.style.color='#white'" onmouseout="this.style.color='#94a3b8'">
+            利用規約・プライバシーポリシー
+        </a>
+    </p>
+    <p style="color: #334155; font-size: 12px; margin: 0;">&copy; 2026 アニ管理 All Rights Reserved.</p>
+</footer>
+
+    <script>
+        // タブを切り替えるシンプルなロジック
+        function switchTab(tabName) {
+            // ボタンの装飾リセット
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            // コンテンツの非表示リセット
+            const sections = document.querySelectorAll('.policy-section');
+            sections.forEach(sec => sec.classList.remove('active'));
+
+            // 選択されたタブをアクティブ化
+            if (tabName === 'terms') {
+                document.getElementById('terms-content').classList.add('active');
+                event.currentTarget.classList.add('active');
+            } else if (tabName === 'privacy') {
+                document.getElementById('privacy-content').classList.add('active');
+                event.currentTarget.classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>

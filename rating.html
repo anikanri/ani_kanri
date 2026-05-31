@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./css/style.css">
+    <title>作品評価 - アニ管理</title>
+    <style>
+        html, body { height: 100%; margin: 0; }
+        body { display: flex; flex-direction: column; font-family: 'Noto Sans JP', sans-serif; background-color: #f4f6f9; color: #333; }
+        main { flex: 1; padding: 120px 0 60px; }
+        .container { max-width: 1000px; margin: 0 auto; width: 90%; }
+        
+        /* ーーー 👇 ここが「大きく綺麗にしたヘッダースタイル」です！ ーーー */
+        header { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px); border-bottom: 1px solid #1e293b; position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; box-sizing: border-box; }
+        .row { max-width: 1400px; margin: 0 auto; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-weight: 900; font-size: 24px; color: white; letter-spacing: -0.5px; text-decoration: none; }
+        .menu { display: flex; gap: 12px; list-style: none; margin: 0; padding: 0; align-items: center; }
+        .menu a { color: #cbd5e1; text-decoration: none; font-size: 16px; font-weight: 800; padding: 10px 22px; border-radius: 24px; transition: all 0.25s ease; letter-spacing: 0.5px; }
+        .menu a:hover { color: white; background: rgba(255, 255, 255, 0.08); }
+        .menu a.active { color: white; background: linear-gradient(135deg, #ff3b30, #ff2d55); box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3); }
+        /* ーーー 👆 ここまで ーーー */
+
+        .page-header-box { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; flex-wrap: wrap; gap: 20px; }
+        .page-title { font-size: 28px; font-weight: 800; border-left: 6px solid #ff3b30; padding-left: 15px; color: #0f172a; margin: 0; }
+        
+        .my-search-box { padding: 10px 18px; font-size: 14px; border: 2px solid #e2e8f0; border-radius: 20px; outline: none; width: 100%; max-width: 300px; transition: 0.2s; }
+        .my-search-box:focus { border-color: #ff3b30; background: white; }
+
+        .rating-layout { display: grid; grid-template-columns: repeat(auto-fill, minmax(450px, 1fr)); gap: 30px; }
+        .rating-card { background: white; border-radius: 20px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; display: flex; gap: 20px; transition: all 0.2s; position: relative; }
+        .anime-thumb { width: 110px; aspect-ratio: 3/4; object-fit: cover; border-radius: 12px; }
+        .rating-info { flex: 1; display: flex; flex-direction: column; }
+        .anime-title { font-weight: 800; font-size: 16px; margin: 0 0 15px 0; color: #0f172a; line-height: 1.4; }
+        
+        .rating-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+        .rating-label { font-size: 13px; font-weight: 700; color: #475569; }
+        .stars-container { display: flex; gap: 4px; }
+        .star { font-size: 18px; color: #cbd5e1; cursor: pointer; transition: transform 0.1s; }
+        .star:hover { transform: scale(1.2); }
+        .star.active { color: #ffcc00; }
+        
+        .comment-box { width: 100%; min-height: 60px; margin-top: 12px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-family: inherit; resize: vertical; box-sizing: border-box; outline: none; transition: 0.2s; background: #f8fafc; }
+        .comment-box:focus { border-color: #ff3b30; background: white; }
+
+        .total-score-box { margin-top: 15px; padding-top: 12px; border-top: 1px dashed #e2e8f0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+        .total-label { font-size: 13px; font-weight: 800; color: #64748b; }
+        .total-stars { font-size: 16px; color: #ffcc00; font-weight: bold; background: #0f172a; padding: 4px 10px; border-radius: 12px; }
+        
+        .btn-save-rating { padding: 8px 16px; border: none; border-radius: 20px; background: linear-gradient(135deg, #ff3b30, #ff2d55); color: white; font-weight: bold; font-size: 12px; cursor: pointer; box-shadow: 0 4px 10px rgba(255,59,48,0.2); transition: all 0.2s; }
+        .btn-save-rating:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(255,59,48,0.35); }
+        .btn-save-rating.saved { background: #059669; box-shadow: 0 4px 10px rgba(5,150,105,0.2); }
+    
+        .menu a.my-rank-nav-btn {
+    background: linear-gradient(135deg, #ff9500, #ffcc00);
+    color: #0f172a;
+    box-shadow: 0 4px 10px rgba(255,149,0,0.2);
+    font-weight: 800;
+}
+    
+    </style>
+
+</head>
+<body>
+
+    <header>
+    <div class="row"> 
+     <a href="./" class="logo">アニ管理</a>
+     <nav>
+        <ul class="menu">      
+          <li><a href="./search.html">検索</a></li>
+          <li><a href="./rating.html" style="color: white; background: rgba(255,255,255,0.1);">評価</a></li>
+          <li><a href="./users/index.html">マイページ</a></li>
+          <li><a href="./my-ranking.html" class="my-rank-nav-btn">🏅 マイランキング</a></li>
+        </ul>
+     </nav>
+    </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="page-header-box">
+                <div>
+                    <h2 class="page-title">⭐ 作品評価・感想</h2>
+                    <p style="color: #64748b; margin: 5px 0 0 0; font-size: 13px;">星と感想を入力後、右下の「保存する」ボタンを押して確定してください。</p>
+                </div>
+                <input type="text" id="my-rating-search" class="my-search-box" placeholder="自分のリストから作品を検索...">
+            </div>
+            
+            <div class="rating-layout" id="rating-grid"></div>
+        </div>
+    </main>
+
+    <script>
+        const ratingGrid = document.getElementById('rating-grid');
+        const myRatingSearch = document.getElementById('my-rating-search');
+        const axes = ['character', 'art', 'tempo', 'story'];
+        const axesJa = { character: 'キャラクター性', art: '作画', tempo: 'テンポ', story: 'ストーリー' };
+
+        let watchedList = [];
+        let tempRatings = {};
+
+        window.onload = function() {
+            loadRatingPage();
+            
+            myRatingSearch.addEventListener('input', () => {
+                const query = myRatingSearch.value.toLowerCase().trim();
+                watchedList.forEach(anime => {
+                    const card = document.getElementById(`card-${anime.id}`);
+                    if (!card) return;
+                    if (anime.title.toLowerCase().includes(query)) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.setProperty('display', 'none', 'important');
+                    }
+                });
+            });
+        };
+
+        function loadRatingPage() {
+            watchedList = JSON.parse(localStorage.getItem('watchedAnimes')) || [];
+            const ratings = JSON.parse(localStorage.getItem('animeRatings')) || {};
+
+            if (watchedList.length === 0) {
+                ratingGrid.innerHTML = '<p style="color: #64748b; font-weight: bold; grid-column: span 2; text-align: center; padding: 40px 0;">評価できるアニメがまだありません。</p>';
+                return;
+            }
+
+            ratingGrid.innerHTML = '';
+
+            watchedList.forEach(anime => {
+                let imageHTML = anime.image ? `<img src="${anime.image}" class="anime-thumb" alt="">` : `<div class="anime-thumb" style="background:#cbd5e1; display:flex; justify-content:center; align-items:center; font-size:10px; color:#475569; font-weight:bold; text-align:center;">NO IMAGE</div>`;
+                
+                const animeRate = ratings[anime.id] || { character: 0, art: 0, tempo: 0, story: 0, comment: '' };
+                tempRatings[anime.id] = { ...animeRate };
+
+                const totalStars = ((animeRate.character + animeRate.art + animeRate.tempo + animeRate.story) / 4).toFixed(1);
+                const savedComment = animeRate.comment || '';
+
+                let rowsHTML = '';
+                axes.forEach(axis => {
+                    let starsHTML = '';
+                    for (let i = 1; i <= 5; i++) {
+                        starsHTML += `<span class="star ${i <= (animeRate[axis] || 0) ? 'active' : ''}" data-anime="${anime.id}" data-axis="${axis}" data-value="${i}">★</span>`;
+                    }
+                    rowsHTML += `
+                        <div class="rating-row">
+                            <span class="rating-label">${axesJa[axis]}</span>
+                            <div class="stars-container">${starsHTML}</div>
+                        </div>
+                    `;
+                });
+
+                const cardHTML = `
+                    <div class="rating-card" id="card-${anime.id}">
+                        ${imageHTML}
+                        <div class="rating-info">
+                            <p class="anime-title">${anime.title}</p>
+                            ${rowsHTML}
+                            
+                            <textarea class="comment-box" id="comment-${anime.id}" placeholder="作品の感想やメモを自由に書けます...">${savedComment}</textarea>
+
+                            <div class="total-score-box">
+                                <div class="total-stars" id="total-val-${anime.id}">⭐ 総合: ${totalStars}</div>
+                                <button class="btn-save-rating" id="save-btn-${anime.id}" data-anime="${anime.id}">保存する</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                ratingGrid.insertAdjacentHTML('beforeend', cardHTML);
+            });
+
+            document.querySelectorAll('.star').forEach(star => {
+                star.addEventListener('click', (e) => {
+                    const animeId = e.target.getAttribute('data-anime');
+                    const axis = e.target.getAttribute('data-axis');
+                    const val = parseInt(e.target.getAttribute('data-value'));
+                    changeTempRating(animeId, axis, val);
+                });
+            });
+
+            document.querySelectorAll('.btn-save-rating').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const animeId = e.target.getAttribute('data-anime');
+                    commitRating(animeId);
+                });
+            });
+        }
+
+        function changeTempRating(animeId, axis, value) {
+            let temp = tempRatings[animeId];
+            if (temp[axis] === value) { temp[axis] = 0; } else { temp[axis] = value; }
+
+            const card = document.getElementById(`card-${animeId}`);
+            const stars = card.querySelectorAll(`.star[data-axis="${axis}"]`);
+            stars.forEach(s => {
+                const sVal = parseInt(s.getAttribute('data-value'));
+                if (sVal <= temp[axis]) { s.classList.add('active'); } 
+                else { s.classList.remove('active'); }
+            });
+
+            const newTotal = ((temp.character + temp.art + temp.tempo + temp.story) / 4).toFixed(1);
+            document.getElementById(`total-val-${animeId}`).textContent = `⭐ 総合: ${newTotal}`;
+
+            const saveBtn = document.getElementById(`save-btn-${animeId}`);
+            saveBtn.textContent = "変更を保存する";
+            saveBtn.classList.remove('saved');
+        }
+
+        function commitRating(animeId) {
+            let ratings = JSON.parse(localStorage.getItem('animeRatings')) || {};
+            const textComment = document.getElementById(`comment-${animeId}`).value;
+
+            ratings[animeId] = {
+                ...tempRatings[animeId],
+                comment: textComment
+            };
+
+            localStorage.setItem('animeRatings', JSON.stringify(ratings));
+
+            const saveBtn = document.getElementById(`save-btn-${animeId}`);
+            saveBtn.textContent = "✓ 保存されました";
+            saveBtn.classList.add('saved');
+            
+            setTimeout(() => {
+                if(saveBtn.classList.contains('saved')) {
+                    saveBtn.textContent = "保存する";
+                }
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

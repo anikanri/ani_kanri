@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./css/style.css">
+    <title>マイランキング - アニ管理</title>
+    <style>
+        html, body { height: 100%; margin: 0; }
+        body { display: flex; flex-direction: column; font-family: 'Noto Sans JP', sans-serif; background-color: #f4f6f9; color: #333; }
+        main { flex: 1; padding: 120px 0 60px; }
+        .container { max-width: 1200px; margin: 0 auto; width: 95%; }
+        
+        /* 📱 統一された大型美しいヘッダー */
+        header { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px); border-bottom: 1px solid #1e293b; position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; box-sizing: border-box; }
+        .row { max-width: 1400px; margin: 0 auto; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-weight: 900; font-size: 24px; color: white; letter-spacing: -0.5px; text-decoration: none; }
+        .menu { display: flex; gap: 12px; list-style: none; margin: 0; padding: 0; align-items: center; }
+        .menu a { color: #cbd5e1; text-decoration: none; font-size: 16px; font-weight: 800; padding: 10px 22px; border-radius: 24px; transition: all 0.25s ease; letter-spacing: 0.5px; }
+        .menu a:hover { color: white; background: rgba(255, 255, 255, 0.08); }
+        .menu a.active { color: white; background: linear-gradient(135deg, #ff9500, #ffcc00); color: #0f172a; box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3); }
+
+        .page-title { font-size: 26px; font-weight: 900; color: #0f172a; margin-bottom: 30px; border-left: 6px solid #ff9500; padding-left: 12px; }
+
+        /* 👑 新開発：横長フルワイド・ランキングカード */
+        .rank-list-container { display: flex; flex-direction: column; gap: 20px; }
+        
+        .rank-wide-card { background: white; border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 20px rgba(0,0,0,0.03); display: flex; align-items: center; padding: 20px; gap: 24px; transition: transform 0.2s; position: relative; }
+        .rank-wide-card:hover { transform: scale(1.01); border-color: #ff9500; }
+
+        /* 左側：順位と画像、タイトル */
+        .rank-left-block { display: flex; align-items: center; gap: 20px; width: 35%; min-width: 300px; flex-shrink: 0; }
+        
+        .rank-number-badge { width: 44px; height: 44px; border-radius: 50%; color: white; font-weight: 900; font-size: 20px; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); flex-shrink: 0; }
+        .rank-1 { background: linear-gradient(135deg, #ffd700, #ffa500); }
+        .rank-2 { background: linear-gradient(135deg, #c0c0c0, #808080); }
+        .rank-3 { background: linear-gradient(135deg, #cd7f32, #8b4513); }
+        .rank-other { background: #475569; }
+
+        .rank-anime-img { width: 80px; aspect-ratio: 3/4; object-fit: cover; border-radius: 10px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .rank-anime-title { font-weight: 900; font-size: 16px; color: #0f172a; margin: 0; line-height: 1.4; }
+
+        /* 中央：星4項目（でんでんでん） */
+        .rank-center-stars { width: 28%; min-width: 220px; flex-shrink: 0; display: flex; flex-direction: column; gap: 6px; padding: 0 15px; border-left: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; }
+        .star-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; color: #475569; }
+        .star-visual { color: #ffcc00; font-size: 14px; letter-spacing: 1px; }
+
+        /* 右側：ダイレクト感想エリア */
+        .rank-right-comment { flex: 1; min-width: 250px; background: #f8fafc; padding: 14px; border-radius: 12px; border: 1px dashed #cbd5e1; font-size: 13px; line-height: 1.6; color: #334155; max-height: 90px; overflow-y: auto; }
+        .no-comment { color: #94a3b8; font-style: italic; }
+
+        /* 総合点バッジ */
+        .score-top-badge { position: absolute; top: -10px; right: 20px; background: #0f172a; color: #ffcc00; font-weight: bold; font-size: 12px; padding: 4px 12px; border-radius: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="row"> 
+         <a href="./" class="logo">アニ管理</a>
+         <nav>
+            <ul class="menu">      
+              <li><a href="./search.html">検索</a></li>
+              <li><a href="./rating.html">評価</a></li>
+              <li><a href="./users/index.html">マイページ</a></li>
+              <li><a href="./my-ranking.html" class="active">マイランキング</a></li>
+            </ul>
+         </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <h2 class="page-title">🏅 あなたの個人評価ランキング</h2>
+            
+            <div class="rank-list-container" id="my-custom-ranking-list">
+                </div>
+        </div>
+    </main>
+
+    <script>
+        window.onload = function() {
+            buildHorizontalRanking();
+        };
+
+        function buildHorizontalRanking() {
+            const listContainer = document.getElementById('my-custom-ranking-list');
+            const watchedList = JSON.parse(localStorage.getItem('watchedAnimes')) || [];
+            const ratings = JSON.parse(localStorage.getItem('animeRatings')) || {};
+
+            if (watchedList.length === 0) {
+                listContainer.innerHTML = '<p style="color: #64748b; font-weight: bold; text-align: center; padding: 5px 0;">まだ評価データがありません。評価ページで星をつけて保存するとここに反映されます！</p>';
+                return;
+            }
+
+            // 平均スコアを計算してデータを結合
+            let rankedData = watchedList.map(anime => {
+                const rate = ratings[anime.id] || { character: 0, art: 0, tempo: 0, story: 0, comment: '' };
+                const avg = ((rate.character + rate.art + rate.tempo + rate.story) / 4);
+                return { ...anime, details: rate, score: avg };
+            });
+
+            // 🌟 スコアの高い順に並び替え
+            rankedData.sort((a, b) => b.score - a.score);
+
+            listContainer.innerHTML = '';
+
+            // 星のビジュアルを作る関数
+            function makeStars(num) {
+                let s = '';
+                for(let i=1; i<=5; i++) {
+                    s += i <= num ? '★' : '☆';
+                }
+                return s;
+            }
+
+            rankedData.forEach((anime, index) => {
+                const rank = index + 1;
+                let badgeClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other';
+                
+                let imageHTML = anime.image ? `<img src="${anime.image}" class="rank-anime-img" alt="">` : `<div class="rank-anime-img" style="background:#334155; display:flex; justify-content:center; align-items:center; color:#64748b; font-size:10px; font-weight:bold;">NO IMAGE</div>`;
+
+                const charS = makeStars(anime.details.character);
+                const artS = makeStars(anime.details.art);
+                const tempoS = makeStars(anime.details.tempo);
+                const storyS = makeStars(anime.details.story);
+
+                const commentText = anime.details.comment ? anime.details.comment : '<span class="no-comment">感想コメントは未入力です。</span>';
+
+                const cardHTML = `
+                    <div class="rank-wide-card">
+                        <div class="score-top-badge">⭐ 総合: ${anime.score.toFixed(1)}</div>
+                        
+                        <div class="rank-left-block">
+                            <div class="rank-number-badge ${badgeClass}">${rank}</div>
+                            ${imageHTML}
+                            <p class="rank-anime-title">${anime.title}</p>
+                        </div>
+                        
+                        <div class="rank-center-stars">
+                            <div class="star-row"><span>キャラ性:</span><span class="star-visual">${charS}</span></div>
+                            <div class="star-row"><span>作画技術:</span><span class="star-visual">${artS}</span></div>
+                            <div class="star-row"><span>テンポ感:</span><span class="star-visual">${tempoS}</span></div>
+                            <div class="star-row"><span>お話構成:</span><span class="star-visual">${storyS}</span></div>
+                        </div>
+                        
+                        <div class="rank-right-comment">
+                            <strong>✍️ 感想・メモ:</strong><br>
+                            ${commentText}
+                        </div>
+                    </div>
+                `;
+                listContainer.insertAdjacentHTML('beforeend', cardHTML);
+            });
+        }
+    </script>
+</body>
+</html>
