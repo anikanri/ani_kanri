@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght=100..900&display=swap" rel="stylesheet">
+    <title>マイページ - アニ管理</title>
+    <style>
+        html, body { height: 100%; margin: 0; }
+        body { display: flex; flex-direction: column; font-family: 'Noto Sans JP', sans-serif; background-color: #f4f6f9; color: #333; }
+        main { flex: 1; padding: 120px 0 60px; }
+        .container { max-width: 1000px; margin: 0 auto; width: 90%; }
+        
+        /* 📱 ヘッダー */
+        header { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px); border-bottom: 1px solid #1e293b; position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; box-sizing: border-box; }
+        .row { max-width: 1400px; margin: 0 auto; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-weight: 900; font-size: 24px; color: white; letter-spacing: -0.5px; text-decoration: none; }
+        .menu { display: flex; gap: 12px; list-style: none; margin: 0; padding: 0; align-items: center; }
+        .menu a { color: #cbd5e1; text-decoration: none; font-size: 16px; font-weight: 800; padding: 10px 22px; border-radius: 24px; transition: all 0.25s ease; }
+        .menu a:hover { color: white; background: rgba(255, 255, 255, 0.08); }
+        .menu a.active { background: rgba(255, 255, 255, 0.1); color: white; }
+
+        /* 👤 プロフィールエリア */
+        .profile-card { background: white; border-radius: 24px; padding: 30px; border: 1px solid #e2e8f0; box-shadow: 0 4px 20px rgba(0,0,0,0.02); display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; }
+        .profile-left { display: flex; align-items: center; gap: 24px; }
+        .user-avatar { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 3px solid #ff9500; background: #e2e8f0; }
+        .user-name { font-size: 24px; font-weight: 900; color: #0f172a; margin: 0; }
+        
+        .btn-settings-nav { background: #0f172a; color: #ffcc00; text-decoration: none; font-weight: 800; font-size: 14px; padding: 12px 20px; border-radius: 12px; border: 1px solid #1e293b; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+        .btn-settings-nav:hover { background: #1e293b; transform: translateY(-1px); }
+
+        /* 🔀 ソートコントロール */
+        .sort-container { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .section-title { font-size: 20px; font-weight: 900; color: #0f172a; margin: 0; border-left: 6px solid #3b82f6; padding-left: 12px; }
+        .sort-buttons { display: flex; gap: 10px; }
+        .btn-sort { background: white; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 800; color: #475569; cursor: pointer; transition: 0.2s; }
+        .btn-sort:hover { background: #f1f5f9; color: #0f172a; }
+        .btn-sort.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+
+        /* 🎬 作品グリッド */
+        .watched-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 24px; }
+
+        /* 🔖 1本ずつの列（独立した行）として幅いっぱいに表示される美しい見出し */
+        .group-divider { 
+            grid-column: 1 / -1; 
+            font-size: 14px; 
+            font-weight: 900; 
+            color: #475569; 
+            background: #e2e8f0; 
+            padding: 8px 20px; 
+            border-radius: 12px; 
+            margin-top: 20px; 
+            margin-bottom: 4px; 
+            letter-spacing: 1px;
+            box-sizing: border-box;
+            width: 100%; 
+        }
+
+        .watched-card { background: white; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: space-between; position: relative; }
+        .watched-img { width: 100%; aspect-ratio: 3/4; object-fit: cover; }
+        
+        /* 🏷️ 映画/アニメ識別バッジ */
+        .media-badge { position: absolute; top: 8px; right: 8px; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 900; color: white; z-index: 5; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .badge-anime { background: #3b82f6; }
+        .badge-movie { background: #ec4899; }
+
+        .card-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+        .watched-title { font-size: 13px; font-weight: 800; margin: 0; color: #0f172a; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 36px; }
+        
+        .episode-select, .movie-status-select { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 12px; font-weight: 700; color: #475569; background-color: #f8fafc; cursor: pointer; box-sizing: border-box; }
+        
+        /* ❌ 共通・リストから消去ボタン */
+        .btn-item-delete { width: 100%; background: #fff1f0; color: #ff3b30; border: 1px solid #ffccc7; padding: 6px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; margin-top: 6px; transition: 0.2s; box-sizing: border-box; text-align: center; }
+        .btn-item-delete:hover { background: #ff3b30; color: white; border-color: #ff3b30; }
+
+        /* 🎨 画面中央のおしゃれなポップアップ（モーダル） */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        
+        .custom-modal { background: white; border-radius: 24px; padding: 30px; max-width: 400px; width: 85%; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.15); border: 1px solid #e2e8f0; transform: translateY(20px); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .modal-overlay.active .custom-modal { transform: translateY(0); }
+
+        .modal-icon { font-size: 40px; margin-bottom: 12px; display: inline-block; animation: pulse 1.5s infinite; }
+        .modal-title { font-size: 18px; font-weight: 900; color: #0f172a; margin: 0 0 10px 0; }
+        .modal-text { font-size: 14px; color: #475569; font-weight: 700; margin: 0 0 24px 0; line-height: 1.6; }
+        .modal-buttons { display: flex; gap: 12px; justify-content: center; }
+        
+        .btn-modal { padding: 12px 24px; border-radius: 12px; font-size: 14px; font-weight: 800; border: none; cursor: pointer; transition: all 0.2s ease; width: 50%; }
+        .btn-modal-cancel { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+        .btn-modal-cancel:hover { background: #e2e8f0; color: #0f172a; }
+        .btn-modal-confirm { background: linear-gradient(135deg, #ff4d4d, #ff3b30); color: white; box-shadow: 0 4px 12px rgba(255, 59, 48, 0.2); }
+        .btn-modal-confirm:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(255, 59, 48, 0.3); }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="row"> 
+         <a href="../" class="logo">アニ管理</a>
+         <nav>
+            <ul class="menu">      
+              <li><a href="../search.html">検索</a></li>
+              <li><a href="../rating.html">評価</a></li>
+              <li><a href="./index.html" class="active">マイページ</a></li>
+              <li><a href="../my-ranking.html" style="background: linear-gradient(135deg, #ff9500, #ffcc00); color: #0f172a; font-weight:800; border-radius:24px;">🏅 マイランキング</a></li>
+            </ul>
+         </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            
+            <div class="profile-card">
+                <div class="profile-left">
+                    <img id="mypage-avatar" src="" alt="アイコン" class="user-avatar">
+                    <h2 id="mypage-username" class="user-name">読み込み中...</h2>
+                </div>
+                <a href="../settings.html" class="btn-settings-nav">⚙️ プロフィールを設定</a>
+            </div>
+
+            <section>
+                <div class="sort-container">
+                    <h3 class="section-title">🎬 評価済みの作品一覧</h3>
+                    <div class="sort-buttons">
+                        <button class="btn-sort active" id="sort-season" onclick="changeSort('season')">📅 シーズン順</button>
+                        <button class="btn-sort" id="sort-name" onclick="changeSort('name')">🔤 名前（五十音）順</button>
+                    </div>
+                </div>
+
+                <div class="watched-grid" id="mypage-watched-list">
+                    </div>
+            </section>
+
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="delete-modal-overlay">
+        <div class="custom-modal">
+            <span class="modal-icon">🗑️</span>
+            <h4 class="modal-title" id="modal-anime-title">リストから消去</h4>
+            <p class="modal-text">この作品のデータをマイページから完全に消去しますか？<br><span style="color:#ff3b30; font-size:12px;">※この操作は取り消せません。</span></p>
+            <div class="modal-buttons">
+                <button class="btn-modal btn-modal-cancel" onclick="closeDeleteModal()">キャンセル</button>
+                <button class="btn-modal btn-modal-confirm" id="modal-confirm-trigger">リストから消去</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSortMode = 'season';
+        let pendingDeleteId = null; 
+
+        window.onload = function() {
+            checkAndGenerateRandomName();
+            loadUserProfile();
+            renderWatchedList();
+        };
+
+        function checkAndGenerateRandomName() {
+            const savedName = localStorage.getItem('username');
+            if (!savedName || savedName === 'ゲストユーザー') {
+                const adjectives = ['流浪の', '快速の', '伝説の', '新進気鋭の', '孤高の', '神速の', '週末の'];
+                const nouns = ['アニファン', 'アニメ愛好家', 'レビュアー', 'オタク', 'リスナー', 'ウォッチャー'];
+                const randomId = Math.floor(1000 + Math.random() * 9000);
+                const finalName = `${adjectives[Math.floor(Math.random() * adjectives.length)]}${nouns[Math.floor(Math.random() * nouns.length)]}#${randomId}`;
+                localStorage.setItem('username', finalName);
+            }
+        }
+
+        function loadUserProfile() {
+            const savedName = localStorage.getItem('username');
+            const savedAvatar = localStorage.getItem('userAvatar') || 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
+            document.getElementById('mypage-username').innerText = savedName;
+            document.getElementById('mypage-avatar').src = savedAvatar;
+        }
+
+        function changeSort(mode) {
+            currentSortMode = mode;
+            document.getElementById('sort-season').classList.toggle('active', mode === 'season');
+            document.getElementById('sort-name').classList.toggle('active', mode === 'name');
+            renderWatchedList();
+        }
+
+        function formatSeasonText(seasonStr) {
+            if (!seasonStr) return '時期未設定・その他映画など';
+            const parts = seasonStr.split('-');
+            if (parts.length !== 2) return seasonStr;
+            const year = parts[0];
+            const term = parts[1];
+            const termMap = { 'spring': '春', 'summer': '夏', 'autumn': '秋', 'winter': '冬' };
+            return `${year}年 ${termMap[term] || term}シーズン`;
+        }
+
+        // 🔥 【今回の最重要アップデート】漢字タイトルを無理やり読み解き、あ〜わ行へ強制分類する最強ロジック
+        function getKanaGroup(anime) {
+            let text = anime.title_kana || anime.title || '';
+            if (!text) return 'その他';
+            
+            // カタカナをすべてひらがなに統一
+            text = text.replace(/[\u30a1-\u30f6]/g, function(match) {
+                return String.fromCharCode(match.charCodeAt(0) - 0x60);
+            });
+            
+            const firstChar = text.charAt(0);
+
+            // アルファベットを最優先で処理
+            if (/[a-zA-Z]/.test(firstChar)) {
+                return 'A - Z (アルファベット順)';
+            }
+
+            // 💡 漢字の読み判定：各行の「基準になるひらがな」とIntl.Collatorで強引に比較し、ブラウザの持つ辞書順でどこに属するかを割り出します
+            const collator = new Intl.Collator('ja', { sensitivity: 'base' });
+            
+            // あ行〜わ行の境界線となる文字を定義
+            if (collator.compare(firstChar, 'あ') >= 0 && collator.compare(firstChar, 'か') < 0) return 'あ 行';
+            if (collator.compare(firstChar, 'か') >= 0 && collator.compare(firstChar, 'さ') < 0) return 'か 行';
+            if (collator.compare(firstChar, 'さ') >= 0 && collator.compare(firstChar, 'た') < 0) return 'さ 行';
+            if (collator.compare(firstChar, 'た') >= 0 && collator.compare(firstChar, 'な') < 0) return 'た 行';
+            if (collator.compare(firstChar, 'な') >= 0 && collator.compare(firstChar, 'は') < 0) return 'な 行';
+            if (collator.compare(firstChar, 'は') >= 0 && collator.compare(firstChar, 'ま') < 0) return 'は 行';
+            if (collator.compare(firstChar, 'ま') >= 0 && collator.compare(firstChar, 'や') < 0) return 'ま 行';
+            if (collator.compare(firstChar, 'や') >= 0 && collator.compare(firstChar, 'ら') < 0) return 'や 行';
+            if (collator.compare(firstChar, 'ら') >= 0 && collator.compare(firstChar, 'わ') < 0) return 'ら 行';
+            if (collator.compare(firstChar, 'わ') >= 0 && collator.compare(firstChar, 'ん') <= 0) return 'わ 行';
+            
+            // それでも判定が漏れた記号や数字など
+            return 'その他';
+        }
+
+        function renderWatchedList() {
+            const listContainer = document.getElementById('mypage-watched-list');
+            let watchedList = JSON.parse(localStorage.getItem('watchedAnimes')) || [];
+            const savedEpisodes = JSON.parse(localStorage.getItem('animeEpisodes')) || {};
+
+            if (watchedList.length === 0) {
+                listContainer.innerHTML = '<p style="color: #64748b; font-weight: bold; grid-column: 1/-1; text-align: center; padding: 40px 0;">まだ登録された映画・アニメはありません。</p>';
+                return;
+            }
+
+            // 漢字の作品も「よみがな」基準、無ければ「タイトル」基準で美しく日本語辞書順ソート
+            if (currentSortMode === 'name') {
+                const collator = new Intl.Collator('ja', { sensitivity: 'base', numeric: true });
+                watchedList.sort((a, b) => {
+                    const keyA = a.title_kana || a.title || '';
+                    const keyB = b.title_kana || b.title || '';
+                    return collator.compare(keyA, keyB);
+                });
+            } else {
+                watchedList.sort((a, b) => (b.season_name || '').localeCompare(a.season_name || ''));
+            }
+
+            listContainer.innerHTML = '';
+            let currentGroupHeader = '';
+
+            watchedList.forEach(anime => {
+                let targetGroup = '';
+                if (currentSortMode === 'season') {
+                    targetGroup = formatSeasonText(anime.season_name);
+                } else {
+                    targetGroup = getKanaGroup(anime);
+                }
+
+                // 📌 横いっぱいに1本ずつ独立列として表示される区切り見出し
+                if (targetGroup !== currentGroupHeader) {
+                    currentGroupHeader = targetGroup;
+                    const dividerHTML = `<div class="group-divider">📌 ${currentGroupHeader}</div>`;
+                    listContainer.insertAdjacentHTML('beforeend', dividerHTML);
+                }
+
+                const titleLower = anime.title.toLowerCase();
+                const isMovie = anime.media_name === 'movie' || 
+                                anime.episodes_count === 1 ||
+                                anime.title.includes('劇場版') || 
+                                anime.title.includes('映画') || 
+                                titleLower.includes('movie') ||
+                                titleLower.includes('film');
+
+                let imageHTML = anime.image ? `<img src="${anime.image}" class="watched-img">` : `<div class="watched-img" style="background:#334155; display:flex; justify-content:center; align-items:center; color:white; font-size:12px;">NO IMAGE</div>`;
+                const currentEp = savedEpisodes[anime.id] || (isMovie ? '視聴完了' : '1話');
+
+                let controlHTML = '';
+                if (isMovie) {
+                    // 🎬 ボタン文言を「リストから消去」に100%完全統一
+                    controlHTML = `
+                        <select class="movie-status-select" onchange="updateEpisode('${anime.id}', this.value)">
+                            <option value="視聴完了" ${currentEp === '視聴完了' ? 'selected' : ''}>🎬 視聴完了</option>
+                            <option value="未視聴" ${currentEp === '未視聴' ? 'selected' : ''}>⏳ 見てない</option>
+                        </select>
+                        <button class="btn-item-delete" onclick="openDeleteModal('${anime.id}', '${anime.title.replace(/'/g, "\\'")}')">❌ リストから消去</button>
+                    `;
+                } else {
+                    // 📺 ボタン文言を「リストから消去」に100%完全統一
+                    const maxEpisodes = anime.episodes_count && anime.episodes_count > 0 ? anime.episodes_count : 12;
+                    let optionsHTML = `<option value="全話" ${currentEp === '全話' ? 'selected' : ''}>全話視聴</option>`;
+                    for (let i = 1; i <= maxEpisodes; i++) {
+                        optionsHTML += `<option value="${i}話" ${currentEp === `${i}話` ? 'selected' : ''}>${i}話まで見た</option>`;
+                    }
+
+                    controlHTML = `
+                        <select class="episode-select" onchange="updateEpisode('${anime.id}', this.value)">
+                            ${optionsHTML}
+                        </select>
+                        <button class="btn-item-delete" onclick="openDeleteModal('${anime.id}', '${anime.title.replace(/'/g, "\\'")}')">❌ リストから消去</button>
+                    `;
+                }
+
+                const cardHTML = `
+                    <div class="watched-card" id="card-${anime.id}">
+                        <span class="media-badge ${isMovie ? 'badge-movie' : 'badge-anime'}">${isMovie ? '映画' : 'アニメ'}</span>
+                        <div>
+                            ${imageHTML}
+                            <div class="card-body">
+                                <p class="watched-title" title="${anime.title}">${anime.title}</p>
+                            </div>
+                        </div>
+                        <div style="padding: 0 12px 12px 12px;">
+                            ${controlHTML}
+                        </div>
+                    </div>
+                `;
+                listContainer.insertAdjacentHTML('beforeend', cardHTML);
+            });
+        }
+
+        function updateEpisode(animeId, value) {
+            let savedEpisodes = JSON.parse(localStorage.getItem('animeEpisodes')) || {};
+            savedEpisodes[animeId] = value;
+            localStorage.setItem('animeEpisodes', JSON.stringify(savedEpisodes));
+        }
+
+        /* 🎬 ポップアップ制御 */
+        function openDeleteModal(id, title) {
+            pendingDeleteId = id; 
+            document.getElementById('modal-anime-title').innerText = title;
+            document.getElementById('delete-modal-overlay').classList.add('active');
+            
+            document.getElementById('modal-confirm-trigger').onclick = function() {
+                executeItemDeletion();
+            };
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('delete-modal-overlay').classList.remove('active');
+            pendingDeleteId = null;
+        }
+
+        function executeItemDeletion() {
+            if (!pendingDeleteId) return;
+
+            let watchedList = JSON.parse(localStorage.getItem('watchedAnimes')) || [];
+            watchedList = watchedList.filter(item => String(item.id) !== String(pendingDeleteId));
+            localStorage.setItem('watchedAnimes', JSON.stringify(watchedList));
+
+            let ratings = JSON.parse(localStorage.getItem('animeRatings')) || {};
+            if (ratings[pendingDeleteId]) delete ratings[pendingDeleteId];
+            localStorage.setItem('animeRatings', JSON.stringify(ratings));
+
+            let savedEpisodes = JSON.parse(localStorage.getItem('animeEpisodes')) || {};
+            if (savedEpisodes[pendingDeleteId]) delete savedEpisodes[pendingDeleteId];
+            localStorage.setItem('animeEpisodes', JSON.stringify(savedEpisodes));
+
+            closeDeleteModal(); 
+            renderWatchedList(); 
+        }
+    </script>
+</body>
+</html>

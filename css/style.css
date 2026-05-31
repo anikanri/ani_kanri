@@ -1,0 +1,256 @@
+/*  全体共通 */
+/* リンクの初期デザインを消す設定 */
+a {color: inherit;          /* 親要素の色（周りの文字と同じ色）を受け継ぐ */
+    text-decoration: none;   /* 下線を消す */}
+body {
+    font-family: "Noto Sans JP", sans-serif;
+    background-color: #ffffff;}
+/*  ヘッダー */
+ header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #ff0000;
+    z-index: 100;}
+ header .row {
+    color: #fff;
+    font-size: 24px;
+    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 90%;
+    margin: 0 auto;
+    max-width: 1280px;
+    padding: 20px 0;}
+
+ header .logo {
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    font-size: 40px;
+    font-weight: bold;}
+
+ header nav ul {
+    display: flex;}
+ .menu li {
+    list-style: none;}
+ header nav ul li {
+   margin-left: 50px;}
+ /* 追加・修正するヘッダースタイル */
+header { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px); border-bottom: 1px solid #1e293b; position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; box-sizing: border-box; }
+.row { max-width: 1400px; margin: 0 auto; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+.logo { font-weight: 900; font-size: 22px; color: white; letter-spacing: -0.5px; text-decoration: none; }
+.menu { display: flex; gap: 8px; list-style: none; margin: 0; padding: 0; align-items: center; }
+.menu a { color: #94a3b8; text-decoration: none; font-size: 14px; font-weight: 700; padding: 8px 18px; border-radius: 20px; transition: all 0.25s ease; }
+.menu a:hover { color: white; background: rgba(255, 255, 255, 0.05); }
+
+/*  メインビジュアル */
+ .main_visual {
+    background-color: #ffffff;
+    background-size: cover;
+    background-position: top;
+    height: 300px;}
+ .main_visual_inner {
+    width: 90%;
+    margin: 0 auto;
+    max-width: 1280px;
+    height: 100px;
+    position: relative;}
+ .main_visual_inner .tittle {
+    position: absolute;
+    top: 90px;
+    left: 0px;}
+ .main_visual_inner h1 {
+    color: #000000;
+    font-size: 70px;
+    font-weight: bold;
+    margin-bottom: 24px;}
+ .main_visual_inner p {
+    color: #000000;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;}
+ /* --- ホーム画面のボタンエリア --- */
+.home_navigation {      /* ヘッダーの下にスペースを空ける */
+    padding: 60px 0;
+    padding-top: 160px; 
+    padding-bottom: 260px;       /* 上下に少しゆとりを持たせる */
+}
+
+/* ボタンを2列ずつ綺麗に並べる魔法（Gridレイアウト） */
+.button_grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 💡これで「2列」に均等に並びます */
+    gap: 24px;                             /* ボタンとボタンのすき間 */
+}
+
+/* ボタン1個ずつのデザイン */
+.nav_button {
+    display: flex;
+    align-items: center;
+    background-color: #ffffff;  /* ボタンの背景は白 */
+    border: 2px solid #e0e0e0;  /* 薄い枠線 */
+    border-radius: 12px;        /* 角を丸くして優しい印象に */
+    padding: 30px;              /* ボタンの中のゆとり */
+    text-decoration: none;      /* リンクの下線を消す */
+    transition: all 0.3s ease;  /* 動くときのスピードを滑らかにする */
+}
+
+/* ボタンの中のアイコン（絵文字） */
+.nav_button .icon {
+    font-size: 40px;            /* アイコンを大きく */
+    margin-right: 20px;         /* 文字とのすき間 */
+}
+
+/* ボタンの中の文字 */
+.nav_button .text {
+    color: #333333;             /* 文字の色 */
+    font-size: 22px;            /* 文字の大きさ */
+    font-weight: bold;          /* 文字を太字に */
+}
+
+/* 💡 マウスを乗せたとき（ホバー時）の直感的なエフェクト */
+.nav_button:hover {
+    border-color: #ff0000;      /* ヘッダーと同じ赤色の枠線になる */
+    transform: translateY(-5px); /* ちょっとだけ上にピョコッと浮き上がる */
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05); /* 影をつけて浮いた感を出す */
+}  
+/*  セクション1 */
+ .section1 {
+    background-color: #ffffff;
+    padding: 80px 0;}
+ .section1 .container {
+    width: 90%;
+    margin: 0 auto;
+    max-width: 1280px;}
+ .section1 .row {
+    display: flex;
+    justify-content: space-between;
+    }
+ .section1 .col {
+      width: 48%;}
+ .section1 .col .sub_tittle {
+    color: #ff0000;
+    font-size: 24px;
+    font-weight: 500;
+    margin-bottom: 20px;}
+ .section1 h2 {
+   font-size: 28px;
+   line-height: 1.6
+   }
+ .section1 .text1{
+   font-size: 18px;
+   font-weight: 400;
+   line-height: 1.6;
+   margin-bottom: 30px;
+   padding-top: 50px;
+   padding-bottom: 50px;
+   } 
+ .section1 .btn {
+   font-size: 18px;
+   border: 2px solid #ff0000;
+   border-radius: 100px;
+   display: inline-block;
+   width: 200px;
+   line-height: 50px;
+   text-align: center;
+   transition: 0.3s;
+ }
+ .section1 .btn:hover {
+   color: #1900ff;
+   border-color: #1900ff;
+   transition: 0.3s;
+ }
+ /* --- 今期の注目アニメエリア --- */
+
+/* 画像を横に4個きれいに並べる魔法 */
+.anime_grid {
+    display: grid;
+    /* 💡 これで画面の幅に合わせて「4列」に均等に並びます */
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 20px; /* カード同士のすき間（お好みで調整） */
+    height: auto;
+    margin-bottom: 40px;
+}
+
+/* アニメのカード全体の枠 */
+.anime_card {
+    background-color: #fff;
+    border-radius: 8px;
+    overflow: hidden;                      /* 画像の角も一緒に丸く切る設定 */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05); /* ほんのり影をつける */
+}
+
+/* 🌟 ここを書き換えます！キービジュアル画像そのものの設定 */
+.anime_card img {
+    width: 100%;           /* 横幅はカードいっぱいに広げる */
+    
+    /* ❌ height: 250px; だったのを消して、下の「aspect-ratio」に変えます！ */
+    aspect-ratio: 3 / 4;   /* ⭕️ これでどんな画像が来ても絶対に「縦横比 3:4」の縦長になります */
+    
+    object-fit: cover;     /* 縦横比が違う画像でも、引き伸ばさずに綺麗に中央でくり抜く魔法 */
+}
+
+.anime_pickup {
+    padding: 60px 0;
+    width: 100%;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    /* 💡 追加：中の要素（main_visual_inner）を画面の真ん中に寄せる */
+    align-items: center; 
+}
+ /* ==========================================
+   🚨 フッターの重なりを完全に直すためのリセットコード
+   ========================================== */
+
+/* アニメエリアの中にある inner だけは、高さを100pxにせず「自動（auto）」に上書きします */
+.anime_pickup .main_visual_inner {
+    height: auto !important;     /* ⭕️ 強制的に中身（アニメカード）の高さに合わせる */
+    position: static !important; /* absoluteなどの位置計算を完全にリセット */
+    width: 90%;
+    margin: 0 auto;
+    max-width: 1280px;
+}
+ 
+/* --------------------------------------------------
+   画面の横幅が768px以下（スマホ・タブレット）の時の設定
+   -------------------------------------------------- */
+@media screen and (max-width: 768px) {
+    
+    /* 1. 文字全体の大きさをスマホ用に調整 */
+    body {
+        font-size: 14px; /* PCより少し小さめにして画面に収める */
+        padding: 10px;   /* 画面の端に少し余白を作る */
+    }
+
+    /* 2. タイトルなどの大きな文字を小さくする */
+    h1 {
+        font-size: 20px; /* PCで大きすぎたタイトルをスマホサイズに */
+    }
+    h2 {
+        font-size: 18px;
+    }
+
+    /* 3. 横並びにしていた要素（カードやボタン）を縦並びにする */
+    /* もしフレックスボックス（flex）を使っている場合 */
+    .container, .menu, .anime-list {
+        flex-direction: column; /* 縦一列に並べる */
+        width: 100%;            /* 横幅を画面いっぱいに広げる */
+    }
+
+    /* 4. 画像や入力フォームが画面からはみ出さないようにする */
+    img, input, select, textarea {
+        max-width: 100%; /* 画面の横幅を絶対に超えないようにする */
+        box-sizing: border-box; /* 枠線も含めてサイズをぴったりに */
+    }
+}
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
