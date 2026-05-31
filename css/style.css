@@ -246,6 +246,38 @@ header { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px); border-b
         box-sizing: border-box; /* 枠線も含めてサイズをぴったりに */
     }
 }
+@media screen and (max-width: 768px) {
+    
+    /* 1. ヘッダー自体の高さを自動（中身に合わせる）にして、縦伸びを防ぐ */
+    header, .header {
+        height: auto !important; /* 高さを固定せず自動にする */
+        padding: 10px;
+        position: relative;     /* 他の要素の下に潜り込むのを防ぐ */
+    }
+
+    /* 2. メニューやナビゲーションの横並びを、スマホ用にコンパクトな縦並び（または中央寄せ）にする */
+    header nav, .nav-menu {
+        display: flex;
+        flex-direction: column; /* 縦並びにする */
+        gap: 8px;              /* ボタン同士の間隔を少しあける */
+        align-items: center;
+    }
+
+    /* 3. 検索バーまわりのエリアが重ならないように位置を調整 */
+    .search-container, .search-bar {
+        margin-top: 10px;       /* ヘッダーと被らないように上に隙間を作る */
+        width: 90%;             /* スマホの画面幅に合わせる */
+        display: inline-block;
+        position: relative;     /* クリック（タップ）できるようにする */
+        z-index: 10;            /* 他の要素より手前に出す */
+    }
+
+    /* 4. ボタンや入力欄が小さすぎて押せないのを防ぐ（タップしやすくする） */
+    input[type="text"], button {
+        padding: 10px 15px;     /* 指で押しやすいサイズ（高さ）にする */
+        font-size: 16px;        /* スマホでズームバグが起きない文字サイズ */
+    }
+}
  
  
  
