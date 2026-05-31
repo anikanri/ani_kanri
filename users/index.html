@@ -98,6 +98,58 @@
             50% { transform: scale(1.08); }
             100% { transform: scale(1); }
         }
+        /* ==========================================
+           📱 スマホ・タブレット用対応（画面幅768px以下）
+           ========================================== */
+        @media screen and (max-width: 768px) {
+            /* ヘッダー全体の余白を少し狭くする */
+            .row {
+                flex-direction: column; /* ロゴとメニューを縦並びにする */
+                gap: 12px;
+                padding: 12px;
+            }
+
+            /* ロゴのサイズをスマホ用に微調整 */
+            .logo {
+                font-size: 20px;
+            }
+
+            /* メニュー全体の横並びをキープしつつ、はみ出さないように折り返す */
+            .menu {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 6px;
+                width: 100%;
+            }
+
+            /* ボタンの文字サイズとパディングをスマホ用に最適化 */
+            .menu a {
+                font-size: 12px;
+                padding: 6px 14px;
+            }
+
+            /* メインコンテンツ（main）の上部余白を、縦に伸びたヘッダーに合わせて調整 */
+            main {
+                padding-top: 150px; /* ヘッダーが2列になった分の隙間を開ける */
+            }
+
+            /* プロフィールカードのボタン群もスマホで綺麗に縦並びにする */
+            .profile-logged-in {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .profile-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+            .btn-settings-nav, .btn-logout {
+                flex: 1;
+                text-align: center;
+                justify-content: center;
+                font-size: 13px;
+                padding: 10px;
+            }
+        }
     </style>
 </head>
 <body>
