@@ -159,8 +159,10 @@
                         <div class="g_id_signin" data-type="standard" data-size="large" data-width="250"></div>
                     </div>
                 </div>
-            </div>
+            </div> 
 
+   
+</div>
             <section>
                 <div class="sort-container">
                     <h3 class="section-title">🎬 視聴済みの作品一覧</h3>
@@ -188,233 +190,304 @@
         </div>
     </div>
 
-    <script>
-        let currentSortMode = 'season';
-        let pendingDeleteId = null; 
+   <script>
+    // 🌐 【最重要】RenderのURLをここに貼り付けてください（最後の一文字を / にしないこと）
+    const API_BASE_URL = "https://ani-kanri.onrender.com";
 
-        window.onload = function() {
-            checkLoginStatus();
-            renderWatchedList(); 
-        };
+    let currentSortMode = 'season';
+    let pendingDeleteId = null; 
 
-        function checkLoginStatus() {
-            const savedName = localStorage.getItem('username');
-            const loggedInView = document.getElementById('profile-logged-in');
-            const loggedOutView = document.getElementById('profile-logged-out');
+    // 💡 ページ読み込み時の処理
+    window.onload = function() {
+        checkLoginStatus();
+    };
 
-            if (savedName && savedName !== 'ゲストユーザー') {
-                loggedInView.style.display = 'flex';
-                loggedOutView.style.display = 'none';
-                loadUserProfile();
-            } else {
-                loggedInView.style.display = 'none';
-                loggedOutView.style.display = 'flex';
-            }
+    function checkLoginStatus() {
+        const savedName = localStorage.getItem('username');
+        const loggedInView = document.getElementById('profile-logged-in');
+        const loggedOutView = document.getElementById('profile-logged-out');
+
+        if (savedName && savedName !== 'ゲストユーザー') {
+            loggedInView.style.display = 'flex';
+            loggedOutView.style.display = 'none';
+            loadUserProfile();
+            
+            // サーバー(SQLite)から最新の視聴記録を読み込む
+            loadAnimeRecordsFromServer();
+        } else {
+            loggedInView.style.display = 'none';
+            loggedOutView.style.display = 'flex';
+            renderWatchedList(); // ゲスト時はローカルのデータを表示
         }
+    }
 
-        function logout() {
-            if (confirm('ログアウトしますか？')) {
-                localStorage.removeItem('username');
-                localStorage.removeItem('userAvatar');
-                checkLoginStatus();
-            }
-        }
-
-        function handleCredentialResponse(response) {
-            const responsePayload = parseJwt(response.credential);
-            const adjectives = ['流浪の', '快速の', '伝説 of ', '新進気鋭の', '孤高の', '神速の', '週末の'];
-            const nouns = ['アニファン', 'アニメ愛好家', 'レビュアー', 'オタク', 'リスナー', 'ウォッチャー'];
-            const randomId = Math.floor(1000 + Math.random() * 9000);
-            const randomName = `${adjectives[Math.floor(Math.random() * adjectives.length)]}${nouns[Math.floor(Math.random() * nouns.length)]}#${randomId}`;
-            const googleAvatar = responsePayload.picture;
-
-            localStorage.setItem('username', randomName);
-            localStorage.setItem('userAvatar', googleAvatar);
-            alert('Googleアカウントとの連携に成功しました！🎉');
+    function logout() {
+        if (confirm('ログアウトしますか？')) {
+            localStorage.removeItem('username');
+            localStorage.removeItem('userAvatar');
+            localStorage.removeItem('googleId'); 
             checkLoginStatus();
         }
+    }
 
-        function parseJwt(token) {
-            const base64Url = token.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
-            return JSON.parse(jsonPayload);
+    function handleCredentialResponse(response) {
+        const idToken = response.credential;
+
+        // 🔄 localhost から Render の URL に修正
+        fetch(`${API_BASE_URL}/api/auth/google`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: idToken })
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('サーバーでの認証に失敗しました');
+            return res.json();
+        })
+        .then(data => {
+            alert('サーバーとの連携に成功しました！🎉');
+
+            // 💾 データベースの鍵として重要！
+            localStorage.setItem('googleId', data.googleId); 
+            localStorage.setItem('username', data.username);
+            localStorage.setItem('userAvatar', data.avatar);
+
+            checkLoginStatus();
+        })
+        .catch(error => {
+            console.error('エラーが発生しました:', error);
+            alert('ログイン処理中にエラーが発生しました。サーバーが起動しているか確認してください。');
+        });
+    }
+
+    // サーバー（SQLite）から過去のアニメ視聴記録を読み込んで同期する関数
+    function loadAnimeRecordsFromServer() {
+        const googleId = localStorage.getItem('googleId');
+        if (!googleId) return;
+
+        // 🔄 localhost から Render の URL に修正
+        fetch(`${API_BASE_URL}/api/records/${googleId}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                let savedEpisodes = JSON.parse(localStorage.getItem('animeEpisodes')) || {};
+                
+                // サーバーにある最新の情報を反映
+                data.records.forEach(record => {
+                    savedEpisodes[record.anime_title] = record.episode; 
+                });
+                localStorage.setItem('animeEpisodes', JSON.stringify(savedEpisodes));
+
+                // 画面を再描画
+                renderWatchedList();
+            }
+        })
+        .catch(err => console.error('データ取得失敗:', err));
+    }
+
+    function parseJwt(token) {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+    }
+
+    function loadUserProfile() {
+        const savedName = localStorage.getItem('username');
+        const savedAvatar = localStorage.getItem('userAvatar') || 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
+        document.getElementById('mypage-username').innerText = savedName;
+        document.getElementById('mypage-avatar').src = savedAvatar;
+    }
+
+    function changeSort(mode) {
+        currentSortMode = mode;
+        document.getElementById('sort-season').classList.toggle('active', mode === 'season');
+        document.getElementById('sort-name').classList.toggle('active', mode === 'name');
+        renderWatchedList();
+    }
+
+    function formatSeasonText(seasonStr) {
+        if (!seasonStr) return '時期未設定・その他映画など';
+        const parts = seasonStr.split('-');
+        if (parts.length !== 2) return seasonStr;
+        const termMap = { 'spring': '春', 'summer': '夏', 'autumn': '秋', 'winter': '冬' };
+        return `${parts[0]}年 ${termMap[parts[1]] || parts[1]}シーズン`;
+    }
+
+    function getKanaGroup(anime) {
+        let text = anime.title_kana || anime.title || '';
+        if (!text) return 'その他';
+        text = text.replace(/[\u30a1-\u30f6]/g, function(match) {
+            return String.fromCharCode(match.charCodeAt(0) - 0x60);
+        });
+        const firstChar = text.charAt(0);
+        if (/[a-zA-Z]/.test(firstChar)) return 'A - Z (アルファベット順)';
+        const collator = new Intl.Collator('ja', { sensitivity: 'base' });
+        if (collator.compare(firstChar, 'あ') >= 0 && collator.compare(firstChar, 'か') < 0) return 'あ 行';
+        if (collator.compare(firstChar, 'か') >= 0 && collator.compare(firstChar, 'さ') < 0) return 'か 行';
+        if (collator.compare(firstChar, 'さ') >= 0 && collator.compare(firstChar, 'た') < 0) return 'さ 行';
+        if (collator.compare(firstChar, 'た') >= 0 && collator.compare(firstChar, 'な') < 0) return 'た 行';
+        if (collator.compare(firstChar, 'な') >= 0 && collator.compare(firstChar, 'は') < 0) return 'な 行';
+        if (collator.compare(firstChar, 'は') >= 0 && collator.compare(firstChar, 'ま') < 0) return 'は 行';
+        if (collator.compare(firstChar, 'ま') >= 0 && collator.compare(firstChar, 'や') < 0) return 'ま 行';
+        if (collator.compare(firstChar, 'や') >= 0 && collator.compare(firstChar, 'ら') < 0) return 'や 行';
+        if (collator.compare(firstChar, 'ら') >= 0 && collator.compare(firstChar, 'わ') < 0) return 'ら 行';
+        if (collator.compare(firstChar, 'わ') >= 0 && collator.compare(firstChar, 'ん') <= 0) return 'わ 行';
+        return 'other';
+    }
+
+    function renderWatchedList() {
+        const listContainer = document.getElementById('mypage-watched-list');
+        let watchedList = JSON.parse(localStorage.getItem('watchedAnimes')) || [];
+        const savedEpisodes = JSON.parse(localStorage.getItem('animeEpisodes')) || {};
+
+        if (watchedList.length === 0) {
+            listContainer.innerHTML = '<p style="color: #64748b; font-weight: bold; grid-column: 1/-1; text-align: center; padding: 40px 0;">まだ登録された映画・アニメはありません。</p>';
+            return;
         }
 
-        function loadUserProfile() {
-            const savedName = localStorage.getItem('username');
-            const savedAvatar = localStorage.getItem('userAvatar') || 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
-            document.getElementById('mypage-username').innerText = savedName;
-            document.getElementById('mypage-avatar').src = savedAvatar;
+        if (currentSortMode === 'name') {
+            const collator = new Intl.Collator('ja', { sensitivity: 'base', numeric: true });
+            watchedList.sort((a, b) => collator.compare(a.title_kana || a.title || '', b.title_kana || b.title || ''));
+        } else {
+            watchedList.sort((a, b) => (b.season_name || '').localeCompare(a.season_name || ''));
         }
 
-        function changeSort(mode) {
-            currentSortMode = mode;
-            document.getElementById('sort-season').classList.toggle('active', mode === 'season');
-            document.getElementById('sort-name').classList.toggle('active', mode === 'name');
-            renderWatchedList();
-        }
+        listContainer.innerHTML = '';
+        let currentGroupHeader = '';
 
-        function formatSeasonText(seasonStr) {
-            if (!seasonStr) return '時期未設定・その他映画など';
-            const parts = seasonStr.split('-');
-            if (parts.length !== 2) return seasonStr;
-            const termMap = { 'spring': '春', 'summer': '夏', 'autumn': '秋', 'winter': '冬' };
-            return `${parts[0]}年 ${termMap[parts[1]] || parts[1]}シーズン`;
-        }
+        watchedList.forEach(anime => {
+            let targetGroup = currentSortMode === 'season' ? formatSeasonText(anime.season_name) : getKanaGroup(anime);
 
-        function getKanaGroup(anime) {
-            let text = anime.title_kana || anime.title || '';
-            if (!text) return 'その他';
-            text = text.replace(/[\u30a1-\u30f6]/g, function(match) {
-                return String.fromCharCode(match.charCodeAt(0) - 0x60);
-            });
-            const firstChar = text.charAt(0);
-            if (/[a-zA-Z]/.test(firstChar)) return 'A - Z (アルファベット順)';
-            const collator = new Intl.Collator('ja', { sensitivity: 'base' });
-            if (collator.compare(firstChar, 'あ') >= 0 && collator.compare(firstChar, 'か') < 0) return 'あ 行';
-            if (collator.compare(firstChar, 'か') >= 0 && collator.compare(firstChar, 'さ') < 0) return 'か 行';
-            if (collator.compare(firstChar, 'さ') >= 0 && collator.compare(firstChar, 'た') < 0) return 'さ 行';
-            if (collator.compare(firstChar, 'た') >= 0 && collator.compare(firstChar, 'な') < 0) return 'た 行';
-            if (collator.compare(firstChar, 'な') >= 0 && collator.compare(firstChar, 'は') < 0) return 'な 行';
-            if (collator.compare(firstChar, 'は') >= 0 && collator.compare(firstChar, 'ま') < 0) return 'は 行';
-            if (collator.compare(firstChar, 'ま') >= 0 && collator.compare(firstChar, 'や') < 0) return 'ま 行';
-            if (collator.compare(firstChar, 'や') >= 0 && collator.compare(firstChar, 'ら') < 0) return 'や 行';
-            if (collator.compare(firstChar, 'ら') >= 0 && collator.compare(firstChar, 'わ') < 0) return 'ら 行';
-            if (collator.compare(firstChar, 'わ') >= 0 && collator.compare(firstChar, 'ん') <= 0) return 'わ 行';
-            return 'other';
-        }
-
-        function renderWatchedList() {
-            const listContainer = document.getElementById('mypage-watched-list');
-            let watchedList = JSON.parse(localStorage.getItem('watchedAnimes')) || [];
-            const savedEpisodes = JSON.parse(localStorage.getItem('animeEpisodes')) || {};
-
-            if (watchedList.length === 0) {
-                listContainer.innerHTML = '<p style="color: #64748b; font-weight: bold; grid-column: 1/-1; text-align: center; padding: 40px 0;">まだ登録された映画・アニメはありません。</p>';
-                return;
+            if (targetGroup !== currentGroupHeader) {
+                currentGroupHeader = targetGroup;
+                listContainer.insertAdjacentHTML('beforeend', `<div class="group-divider">📌 ${currentGroupHeader}</div>`);
             }
 
-            if (currentSortMode === 'name') {
-                const collator = new Intl.Collator('ja', { sensitivity: 'base', numeric: true });
-                watchedList.sort((a, b) => collator.compare(a.title_kana || a.title || '', b.title_kana || b.title || ''));
+            const titleLower = anime.title.toLowerCase();
+            const isMovie = anime.media_name === 'movie' || 
+                            anime.episodes_count === 1 ||
+                            anime.title.includes('劇場版') || 
+                            anime.title.includes('映画') || 
+                            titleLower.includes('movie') ||
+                            titleLower.includes('film');
+
+            let imageHTML = anime.image ? `<img src="${anime.image}" class="watched-img">` : `<div class="watched-img" style="background:#334155; display:flex; justify-content:center; align-items:center; color:white; font-size:12px;">NO IMAGE</div>`;
+            
+            const currentEp = savedEpisodes[anime.title] || (isMovie ? '視聴完了' : '1話');
+
+            let controlHTML = '';
+            if (isMovie) {
+                controlHTML = `
+                    <select class="movie-status-select" onchange="updateEpisode('${anime.id}', '${anime.title.replace(/'/g, "\\'")}', this.value)">
+                        <option value="視聴完了" ${currentEp === '視聴完了' ? 'selected' : ''}>🎬 視聴完了</option>
+                        <option value="未視聴" ${currentEp === '未視聴' ? 'selected' : ''}>⏳ 見てない</option>
+                    </select>
+                `;
             } else {
-                watchedList.sort((a, b) => (b.season_name || '').localeCompare(a.season_name || ''));
+                const maxEpisodes = anime.episodes_count && anime.episodes_count > 0 ? anime.episodes_count : 12;
+                let optionsHTML = `<option value="全話" ${currentEp === '全話' ? 'selected' : ''}>全話視聴</option>`;
+                for (let i = 1; i <= maxEpisodes; i++) {
+                    optionsHTML += `<option value="${i}話" ${currentEp === `${i}話` ? 'selected' : ''}>${i}話まで見た</option>`;
+                }
+                controlHTML = `
+                    <select class="episode-select" onchange="updateEpisode('${anime.id}', '${anime.title.replace(/'/g, "\\'")}', this.value)">
+                        ${optionsHTML}
+                    </select>
+                `;
             }
 
-            listContainer.innerHTML = '';
-            let currentGroupHeader = '';
-
-            watchedList.forEach(anime => {
-                let targetGroup = currentSortMode === 'season' ? formatSeasonText(anime.season_name) : getKanaGroup(anime);
-
-                if (targetGroup !== currentGroupHeader) {
-                    currentGroupHeader = targetGroup;
-                    listContainer.insertAdjacentHTML('beforeend', `<div class="group-divider">📌 ${currentGroupHeader}</div>`);
-                }
-
-                const titleLower = anime.title.toLowerCase();
-                const isMovie = anime.media_name === 'movie' || 
-                                anime.episodes_count === 1 ||
-                                anime.title.includes('劇場版') || 
-                                anime.title.includes('映画') || 
-                                titleLower.includes('movie') ||
-                                titleLower.includes('film');
-
-                let imageHTML = anime.image ? `<img src="${anime.image}" class="watched-img">` : `<div class="watched-img" style="background:#334155; display:flex; justify-content:center; align-items:center; color:white; font-size:12px;">NO IMAGE</div>`;
-                const currentEp = savedEpisodes[anime.id] || (isMovie ? '視聴完了' : '1話');
-
-                let controlHTML = '';
-                if (isMovie) {
-                    controlHTML = `
-                        <select class="movie-status-select" onchange="updateEpisode('${anime.id}', this.value)">
-                            <option value="視聴完了" ${currentEp === '視聴完了' ? 'selected' : ''}>🎬 視聴完了</option>
-                            <option value="未視聴" ${currentEp === '未視聴' ? 'selected' : ''}>⏳ 見てない</option>
-                        </select>
-                    `;
-                } else {
-                    const maxEpisodes = anime.episodes_count && anime.episodes_count > 0 ? anime.episodes_count : 12;
-                    let optionsHTML = `<option value="全話" ${currentEp === '全話' ? 'selected' : ''}>全話視聴</option>`;
-                    for (let i = 1; i <= maxEpisodes; i++) {
-                        optionsHTML += `<option value="${i}話" ${currentEp === `${i}話` ? 'selected' : ''}>${i}話まで見た</option>`;
-                    }
-                    controlHTML = `
-                        <select class="episode-select" onchange="updateEpisode('${anime.id}', this.value)">
-                            ${optionsHTML}
-                        </select>
-                    `;
-                }
-
-                const cardHTML = `
-                    <div class="watched-card" id="card-${anime.id}">
-                        <span class="media-badge ${isMovie ? 'badge-movie' : 'badge-anime'}">${isMovie ? '映画' : 'アニメ'}</span>
-                        <div>
-                            ${imageHTML}
-                            <div class="card-body">
-                                <p class="watched-title" title="${anime.title}">${anime.title}</p>
-                            </div>
-                        </div>
-                        <div style="padding: 0 12px 12px 12px;">
-                            ${controlHTML}
-                            <div id="toast-${anime.id}" class="save-toast">✓ 変更を保存しました</div>
-                            <button class="btn-item-delete" onclick="openDeleteModal('${anime.id}', '${anime.title.replace(/'/g, "\\'")}')">❌ リストから消去</button>
+            const cardHTML = `
+                <div class="watched-card" id="card-${anime.id}">
+                    <span class="media-badge ${isMovie ? 'badge-movie' : 'badge-anime'}">${isMovie ? '映画' : 'アニメ'}</span>
+                    <div>
+                        ${imageHTML}
+                        <div class="card-body">
+                            <p class="watched-title" title="${anime.title}">${anime.title}</p>
                         </div>
                     </div>
-                `;
-                listContainer.insertAdjacentHTML('beforeend', cardHTML);
-            });
+                    <div style="padding: 0 12px 12px 12px;">
+                        ${controlHTML}
+                        <div id="toast-${anime.id}" class="save-toast">✓ 変更を保存しました</div>
+                        <button class="btn-item-delete" onclick="openDeleteModal('${anime.id}', '${anime.title.replace(/'/g, "\\'")}')">❌ リストから消去</button>
+                    </div>
+                </div>
+            `;
+            listContainer.insertAdjacentHTML('beforeend', cardHTML);
+        });
+    }
+
+    // セレクトボックスを切り替えたら、SQLite（サーバー）にも保存をかける
+    function updateEpisode(animeId, animeTitle, value) {
+        // 1. まずは今まで通り localStorage に仮保存
+        let savedEpisodes = JSON.parse(localStorage.getItem('animeEpisodes')) || {};
+        savedEpisodes[animeTitle] = value;
+        localStorage.setItem('animeEpisodes', JSON.stringify(savedEpisodes));
+
+        // 2. トーストアニメーションを表示
+        const toast = document.getElementById(`toast-${animeId}`);
+        if (toast) {
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 1800);
         }
 
-        function updateEpisode(animeId, value) {
-            let savedEpisodes = JSON.parse(localStorage.getItem('animeEpisodes')) || {};
-            savedEpisodes[animeId] = value;
-            localStorage.setItem('animeEpisodes', JSON.stringify(savedEpisodes));
-
-            // ✨ 保存通知アニメーションの制御
-            const toast = document.getElementById(`toast-${animeId}`);
-            if (toast) {
-                toast.classList.add('show');
-                setTimeout(() => {
-                    toast.classList.remove('show');
-                }, 1800);
-            }
+        // 3. ログイン中の場合、サーバー（SQLite）に記録を送信して保存する
+        const googleId = localStorage.getItem('googleId');
+        if (googleId) {
+            // 🔄 localhost から Render の URL に修正
+            fetch(`${API_BASE_URL}/api/records`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    googleId: googleId,
+                    animeTitle: animeTitle,
+                    episode: value
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    console.log(`[DB保存完了] ${animeTitle} -> ${value}`);
+                }
+            })
+            .catch(err => console.error('サーバー保存エラー:', err));
         }
+    }
 
-        function openDeleteModal(id, title) {
-            pendingDeleteId = id; 
-            document.getElementById('modal-anime-title').innerText = title;
-            document.getElementById('delete-modal-overlay').classList.add('active');
-            
-            document.getElementById('modal-confirm-trigger').onclick = function() {
-                executeItemDeletion();
-            };
-        }
+    function openDeleteModal(id, title) {
+        pendingDeleteId = id; 
+        document.getElementById('modal-anime-title').innerText = title;
+        document.getElementById('delete-modal-overlay').classList.add('active');
+        
+        document.getElementById('modal-confirm-trigger').onclick = function() {
+            executeItemDeletion();
+        };
+    }
 
-        function closeDeleteModal() {
-            document.getElementById('delete-modal-overlay').classList.remove('active');
-            pendingDeleteId = null;
-        }
+    function closeDeleteModal() {
+        document.getElementById('delete-modal-overlay').classList.remove('active');
+        pendingDeleteId = null;
+    }
 
-        function executeItemDeletion() {
-            if (!pendingDeleteId) return;
+    function executeItemDeletion() {
+        if (!pendingDeleteId) return;
 
-            let watchedList = JSON.parse(localStorage.getItem('watchedAnimes')) || [];
-            watchedList = watchedList.filter(item => String(item.id) !== String(pendingDeleteId));
-            localStorage.setItem('watchedAnimes', JSON.stringify(watchedList));
+        let watchedList = JSON.parse(localStorage.getItem('watchedAnimes')) || [];
+        watchedList = watchedList.filter(item => String(item.id) !== String(pendingDeleteId));
+        localStorage.setItem('watchedAnimes', JSON.stringify(watchedList));
 
-            let ratings = JSON.parse(localStorage.getItem('animeRatings')) || {};
-            if (ratings[pendingDeleteId]) delete ratings[pendingDeleteId];
-            localStorage.setItem('animeRatings', JSON.stringify(ratings));
+        let ratings = JSON.parse(localStorage.getItem('animeRatings')) || {};
+        if (ratings[pendingDeleteId]) delete ratings[pendingDeleteId];
+        localStorage.setItem('animeRatings', JSON.stringify(ratings));
 
-            let savedEpisodes = JSON.parse(localStorage.getItem('animeEpisodes')) || {};
-            if (savedEpisodes[pendingDeleteId]) delete savedEpisodes[pendingDeleteId];
-            localStorage.setItem('animeEpisodes', JSON.stringify(savedEpisodes));
+        let savedEpisodes = JSON.parse(localStorage.getItem('animeEpisodes')) || {};
+        if (savedEpisodes[pendingDeleteId]) delete savedEpisodes[pendingDeleteId];
+        localStorage.setItem('animeEpisodes', JSON.stringify(savedEpisodes));
 
-            closeDeleteModal(); 
-            renderWatchedList(); 
-        }
-    </script>
+        closeDeleteModal(); 
+        renderWatchedList(); 
+    }
+</script>
 </body>
 </html>
