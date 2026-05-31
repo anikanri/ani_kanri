@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght=100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./css/style.css">
     <title>作品評価 - アニ管理</title>
     <style>
@@ -14,7 +14,7 @@
         main { flex: 1; padding: 120px 0 60px; }
         .container { max-width: 1000px; margin: 0 auto; width: 90%; }
         
-        /* ーーー 👇 ここが「大きく綺麗にしたヘッダースタイル」です！ ーーー */
+        /* 📱 統一ヘッダー */
         header { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px); border-bottom: 1px solid #1e293b; position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; box-sizing: border-box; }
         .row { max-width: 1400px; margin: 0 auto; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
         .logo { font-weight: 900; font-size: 24px; color: white; letter-spacing: -0.5px; text-decoration: none; }
@@ -22,62 +22,71 @@
         .menu a { color: #cbd5e1; text-decoration: none; font-size: 16px; font-weight: 800; padding: 10px 22px; border-radius: 24px; transition: all 0.25s ease; letter-spacing: 0.5px; }
         .menu a:hover { color: white; background: rgba(255, 255, 255, 0.08); }
         .menu a.active { color: white; background: linear-gradient(135deg, #ff3b30, #ff2d55); box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3); }
-        /* ーーー 👆 ここまで ーーー */
+        .menu a.my-rank-nav-btn { background: linear-gradient(135deg, #ff9500, #ffcc00); color: #0f172a; box-shadow: 0 4px 10px rgba(255,149,0,0.2); font-weight: 800; }
 
         .page-header-box { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; flex-wrap: wrap; gap: 20px; }
         .page-title { font-size: 28px; font-weight: 800; border-left: 6px solid #ff3b30; padding-left: 15px; color: #0f172a; margin: 0; }
         
-        .my-search-box { padding: 10px 18px; font-size: 14px; border: 2px solid #e2e8f0; border-radius: 20px; outline: none; width: 100%; max-width: 300px; transition: 0.2s; }
+        .my-search-box { padding: 10px 18px; font-size: 14px; border: 2px solid #e2e8f0; border-radius: 20px; outline: none; width: 100%; max-width: 300px; transition: 0.2s; box-sizing: border-box; }
         .my-search-box:focus { border-color: #ff3b30; background: white; }
 
-        .rating-layout { display: grid; grid-template-columns: repeat(auto-fill, minmax(450px, 1fr)); gap: 30px; }
-        .rating-card { background: white; border-radius: 20px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; display: flex; gap: 20px; transition: all 0.2s; position: relative; }
-        .anime-thumb { width: 110px; aspect-ratio: 3/4; object-fit: cover; border-radius: 12px; }
-        .rating-info { flex: 1; display: flex; flex-direction: column; }
-        .anime-title { font-weight: 800; font-size: 16px; margin: 0 0 15px 0; color: #0f172a; line-height: 1.4; }
+        /* 🎬 レイアウト調整：スマホは1列、PCは2列（崩れ防止に350pxへ変更） */
+        .rating-layout { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 24px; }
+        .rating-card { background: white; border-radius: 20px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; display: flex; gap: 20px; transition: all 0.2s; position: relative; box-sizing: border-box; }
+        .anime-thumb { width: 110px; aspect-ratio: 3/4; object-fit: cover; border-radius: 12px; flex-shrink: 0; }
+        .rating-info { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+        .anime-title { font-weight: 800; font-size: 16px; margin: 0 0 15px 0; color: #0f172a; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
         .rating-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
         .rating-label { font-size: 13px; font-weight: 700; color: #475569; }
-        .stars-container { display: flex; gap: 4px; }
-        .star { font-size: 18px; color: #cbd5e1; cursor: pointer; transition: transform 0.1s; }
-        .star:hover { transform: scale(1.2); }
+        
+        /* ⭐ 星評価まわりの強化 */
+        .stars-container { display: flex; gap: 4px; direction: ltr; }
+        .star { font-size: 20px; color: #cbd5e1; cursor: pointer; transition: transform 0.1s, color 0.1s; user-select: none; }
         .star.active { color: #ffcc00; }
         
+        /* 💡 JSホバークラス用スタイル */
+        .star.hover-active { color: #ffe066; }
+
         .comment-box { width: 100%; min-height: 60px; margin-top: 12px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-family: inherit; resize: vertical; box-sizing: border-box; outline: none; transition: 0.2s; background: #f8fafc; }
         .comment-box:focus { border-color: #ff3b30; background: white; }
 
         .total-score-box { margin-top: 15px; padding-top: 12px; border-top: 1px dashed #e2e8f0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
         .total-label { font-size: 13px; font-weight: 800; color: #64748b; }
-        .total-stars { font-size: 16px; color: #ffcc00; font-weight: bold; background: #0f172a; padding: 4px 10px; border-radius: 12px; }
+        .total-stars { font-size: 14px; color: #ffcc00; font-weight: bold; background: #0f172a; padding: 6px 12px; border-radius: 12px; }
         
-        .btn-save-rating { padding: 8px 16px; border: none; border-radius: 20px; background: linear-gradient(135deg, #ff3b30, #ff2d55); color: white; font-weight: bold; font-size: 12px; cursor: pointer; box-shadow: 0 4px 10px rgba(255,59,48,0.2); transition: all 0.2s; }
+        .btn-save-rating { padding: 10px 20px; border: none; border-radius: 20px; background: linear-gradient(135deg, #ff3b30, #ff2d55); color: white; font-weight: bold; font-size: 13px; cursor: pointer; box-shadow: 0 4px 10px rgba(255,59,48,0.2); transition: all 0.2s; }
         .btn-save-rating:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(255,59,48,0.35); }
         .btn-save-rating.saved { background: #059669; box-shadow: 0 4px 10px rgba(5,150,105,0.2); }
-    
-        .menu a.my-rank-nav-btn {
-    background: linear-gradient(135deg, #ff9500, #ffcc00);
-    color: #0f172a;
-    box-shadow: 0 4px 10px rgba(255,149,0,0.2);
-    font-weight: 800;
-}
-    
-    </style>
 
+        /* 📱 スマホ最適化レスポンシブ */
+        @media (max-width: 600px) {
+            main { padding-top: 100px; }
+            .page-title { font-size: 22px; }
+            .rating-layout { grid-template-columns: 1fr; gap: 16px; }
+            .rating-card { padding: 16px; gap: 14px; }
+            .anime-thumb { width: 85px; }
+            .anime-title { font-size: 14px; margin-bottom: 10px; }
+            .star { font-size: 18px; }
+            .total-score-box { justify-content: union; width: 100%; }
+            .btn-save-rating { width: 100%; text-align: center; }
+        }
+    </style>
 </head>
 <body>
 
     <header>
-    <div class="row"> 
-     <a href="./" class="logo">アニ管理</a>
-     <nav>
-        <ul class="menu">      
-          <li><a href="./search.html">検索</a></li>
-          <li><a href="./rating.html" style="color: white; background: rgba(255,255,255,0.1);">評価</a></li>
-          <li><a href="./users/index.html">マイページ</a></li>
-          <li><a href="./my-ranking.html" class="my-rank-nav-btn">🏅 マイランキング</a></li>
-        </ul>
-     </nav>
-    </div>
+        <div class="row"> 
+            <a href="./" class="logo">アニ管理</a>
+            <nav>
+                <ul class="menu">      
+                    <li><a href="./search.html">検索</a></li>
+                    <li><a href="./rating.html" style="color: white; background: rgba(255,255,255,0.1);">評価</a></li>
+                    <li><a href="./users/index.html">マイページ</a></li>
+                    <li><a href="./my-ranking.html" class="my-rank-nav-btn">🏅 マイランキング</a></li>
+                </ul>
+            </nav>
+        </div>
     </header>
 
     <main>
@@ -125,7 +134,7 @@
             const ratings = JSON.parse(localStorage.getItem('animeRatings')) || {};
 
             if (watchedList.length === 0) {
-                ratingGrid.innerHTML = '<p style="color: #64748b; font-weight: bold; grid-column: span 2; text-align: center; padding: 40px 0;">評価できるアニメがまだありません。</p>';
+                ratingGrid.innerHTML = '<p style="color: #64748b; font-weight: bold; grid-column: 1 / -1; text-align: center; padding: 40px 0;">評価できるアニメがまだありません。</p>';
                 return;
             }
 
@@ -158,7 +167,7 @@
                     <div class="rating-card" id="card-${anime.id}">
                         ${imageHTML}
                         <div class="rating-info">
-                            <p class="anime-title">${anime.title}</p>
+                            <p class="anime-title" title="${anime.title}">${anime.title}</p>
                             ${rowsHTML}
                             
                             <textarea class="comment-box" id="comment-${anime.id}" placeholder="作品の感想やメモを自由に書けます...">${savedComment}</textarea>
@@ -173,18 +182,43 @@
                 ratingGrid.insertAdjacentHTML('beforeend', cardHTML);
             });
 
-            document.querySelectorAll('.star').forEach(star => {
-                star.addEventListener('click', (e) => {
-                    const animeId = e.target.getAttribute('data-anime');
-                    const axis = e.target.getAttribute('data-axis');
-                    const val = parseInt(e.target.getAttribute('data-value'));
-                    changeTempRating(animeId, axis, val);
+            // ⭐ インタラクティブな星評価イベントの設定（ホバー連動追加）
+            document.querySelectorAll('.stars-container').forEach(container => {
+                const stars = container.querySelectorAll('.star');
+
+                stars.forEach(star => {
+                    // 1. クリックイベント
+                    star.addEventListener('click', (e) => {
+                        const animeId = e.currentTarget.getAttribute('data-anime');
+                        const axis = e.currentTarget.getAttribute('data-axis');
+                        const val = parseInt(e.currentTarget.getAttribute('data-value'));
+                        changeTempRating(animeId, axis, val);
+                    });
+
+                    // 2. マウスホバー時（手前の星もまとめて光らせる）
+                    star.addEventListener('mouseenter', (e) => {
+                        const currentVal = parseInt(e.currentTarget.getAttribute('data-value'));
+                        stars.forEach(s => {
+                            const sVal = parseInt(s.getAttribute('data-value'));
+                            if (sVal <= currentVal) {
+                                s.classList.add('hover-active');
+                            } else {
+                                s.classList.remove('hover-active');
+                            }
+                        });
+                    });
+                });
+
+                // 3. マウスがコンテナから外れたらホバー状態をクリア
+                container.addEventListener('mouseleave', () => {
+                    stars.forEach(s => s.classList.remove('hover-active'));
                 });
             });
 
+            // 💾 保存ボタンイベント
             document.querySelectorAll('.btn-save-rating').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    const animeId = e.target.getAttribute('data-anime');
+                    const animeId = e.currentTarget.getAttribute('data-anime');
                     commitRating(animeId);
                 });
             });
@@ -212,7 +246,8 @@
 
         function commitRating(animeId) {
             let ratings = JSON.parse(localStorage.getItem('animeRatings')) || {};
-            const textComment = document.getElementById(`comment-${animeId}`).value;
+            const commentElement = document.getElementById(`comment-${animeId}`);
+            const textComment = commentElement ? commentElement.value : '';
 
             ratings[animeId] = {
                 ...tempRatings[animeId],
@@ -222,14 +257,16 @@
             localStorage.setItem('animeRatings', JSON.stringify(ratings));
 
             const saveBtn = document.getElementById(`save-btn-${animeId}`);
-            saveBtn.textContent = "✓ 保存されました";
-            saveBtn.classList.add('saved');
-            
-            setTimeout(() => {
-                if(saveBtn.classList.contains('saved')) {
-                    saveBtn.textContent = "保存する";
-                }
-            }, 2000);
+            if (saveBtn) {
+                saveBtn.textContent = "✓ 保存されました";
+                saveBtn.classList.add('saved');
+                
+                setTimeout(() => {
+                    if(saveBtn.classList.contains('saved')) {
+                        saveBtn.textContent = "保存する";
+                    }
+                }, 2000);
+            }
         }
     </script>
 </body>

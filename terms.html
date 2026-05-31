@@ -28,16 +28,27 @@
         .tab-btn.active { background: #2563eb; color: white; }
 
         /* 📄 本文エリア */
-        .content-box { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; line-height: 1.8; box-sizing: border-box; }
+        /* 🛠️ 修正箇所：スマホで余白が広すぎて窮屈になるのを防ぐため、paddingを調整 */
+        .content-box { background: white; padding: 40px 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; line-height: 1.8; box-sizing: border-box; }
         .policy-section { display: none; }
         .policy-section.active { display: block; }
         
         h2 { font-size: 22px; font-weight: 900; color: #0f172a; margin-top: 0; margin-bottom: 24px; border-left: 5px solid #2563eb; padding-left: 12px; }
-        h3 { font-size: 16px; font-weight: 800; color: #1e293b; margin-top: 24px; margin-bottom: 8px; }
-        p, li { font-size: 14px; color: #475569; font-weight: 500; }
+        /* 🛠️ 修正箇所：スマホで長文の見出しがはみ出さないように、フォントサイズと折り返しを調整 */
+        h3 { font-size: 16px; font-weight: 800; color: #1e293b; margin-top: 24px; margin-bottom: 8px; word-break: break-all; }
+        /* 🛠️ 修正箇所：長いメールアドレスなどが画面外に飛び出さないように調整 */
+        p, li { font-size: 14px; color: #475569; font-weight: 500; word-break: break-all; }
         ul { padding-left: 20px; margin-bottom: 16px; }
         li { margin-bottom: 6px; }
         .date { text-align: right; color: #94a3b8; font-size: 12px; margin-top: 40px; }
+
+        /* 🛠️ 新規追加：スマホ対応（画面幅が狭いときの微調整） */
+        @media (max-width: 600px) {
+            main { padding-top: 100px; }
+            .content-box { padding: 24px 16px; border-radius: 16px; }
+            .tab-btn { padding: 8px 12px; font-size: 14px; }
+            h2 { font-size: 18px; }
+        }
     </style>
 </head>
 <body>
@@ -59,8 +70,8 @@
         <div class="container">
             
             <div class="tab-container">
-                <button class="tab-btn active" onclick="switchTab('terms')">利用規約</button>
-                <button class="tab-btn" onclick="switchTab('privacy')">プライバシーポリシー</button>
+                <button class="tab-btn active" onclick="switchTab('terms', this)">利用規約</button>
+                <button class="tab-btn" onclick="switchTab('privacy', this)">プライバシーポリシー</button>
             </div>
 
             <div class="content-box">
@@ -131,7 +142,7 @@
 
     <footer style="background-color: #0f172a; color: #94a3b8; padding: 40px 20px; text-align: center; font-size: 14px;">
     <p style="margin: 0 0 12px 0;">
-        <a href="./terms.html" style="color: #94a3b8; text-decoration: none; font-weight: 800; font-size: 13px; transition: color 0.2s;" onmouseover="this.style.color='#white'" onmouseout="this.style.color='#94a3b8'">
+        <a href="./terms.html" style="color: #94a3b8; text-decoration: none; font-weight: 800; font-size: 13px; transition: color 0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#94a3b8'">
             利用規約・プライバシーポリシー
         </a>
     </p>
@@ -139,8 +150,8 @@
 </footer>
 
     <script>
-        // タブを切り替えるシンプルなロジック
-        function switchTab(tabName) {
+        // 🛠️ 修正箇所：event.currentTargetの代わりにclickedBtn（this）を使うことで、環境に依存しない安全な切り替えに修正
+        function switchTab(tabName, clickedBtn) {
             // ボタンの装飾リセット
             const buttons = document.querySelectorAll('.tab-btn');
             buttons.forEach(btn => btn.classList.remove('active'));
@@ -149,13 +160,14 @@
             const sections = document.querySelectorAll('.policy-section');
             sections.forEach(sec => sec.classList.remove('active'));
 
-            // 選択されたタブをアクティブ化
+            // クリックされたボタンをアクティブにする
+            clickedBtn.classList.add('active');
+
+            // 選択されたコンテンツを表示
             if (tabName === 'terms') {
                 document.getElementById('terms-content').classList.add('active');
-                event.currentTarget.classList.add('active');
             } else if (tabName === 'privacy') {
                 document.getElementById('privacy-content').classList.add('active');
-                event.currentTarget.classList.add('active');
             }
         }
     </script>

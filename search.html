@@ -28,10 +28,10 @@
         .search-wrapper { position: relative; flex: 1; display: flex; flex-direction: column; }
         .search-input { width: 100%; padding: 16px 24px; border: 2px solid #e2e8f0; border-radius: 14px; font-size: 16px; font-weight: 700; outline: none; transition: border-color 0.2s; box-sizing: border-box; }
         .search-input:focus { border-color: #2563eb; }
-        .search-btn { background: linear-gradient(135deg, #2563eb, #3b82f6); color: white; border: none; padding: 0 32px; border-radius: 14px; font-size: 16px; font-weight: 800; cursor: pointer; transition: opacity 0.2s; height: 56px; }
+        .search-btn { background: linear-gradient(135deg, #2563eb, #3b82f6); color: white; border: none; padding: 0 32px; border-radius: 14px; font-size: 16px; font-weight: 800; cursor: pointer; transition: opacity 0.2s; height: 56px; flex-shrink: 0; }
         .search-btn:hover { opacity: 0.9; }
 
-        /* 💡 【新設】検索候補（サジェスト）ドロップダウンリスト */
+        /* 💡 検索候補（サジェスト）ドロップダウンリスト */
         .suggestions-list { position: absolute; top: 100%; left: 0; width: 100%; background: white; border: 1px solid #cbd5e1; border-radius: 14px; box-shadow: 0 12px 30px rgba(15, 23, 42, 0.15); z-index: 2000; margin-top: 8px; max-height: 320px; overflow-y: auto; display: none; padding: 0; list-style: none; }
         .suggestions-list li { padding: 10px 16px; font-size: 14px; font-weight: 800; color: #1e293b; cursor: pointer; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #f1f5f9; transition: background 0.15s; }
         .suggestions-list li:last-child { border-bottom: none; }
@@ -82,7 +82,20 @@
         .toast.show { opacity: 1; transform: translateY(0); }
 
         @media (max-width: 950px) { .trend-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 550px) { .trend-grid { grid-template-columns: 1fr; } }
+        /* 🛠️ スマホ時の検索ボックスのレイアウト崩れを防ぐ調整 */
+        @media (max-width: 550px) { 
+            main { padding-top: 100px; }
+            .search-box { flex-direction: column; padding: 16px; gap: 8px; margin-bottom: 24px; }
+            .search-btn { width: 100%; height: 48px; }
+            .trend-grid { grid-template-columns: 1fr; gap: 10px; margin-bottom: 30px; } 
+            .results-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+            .card-body { padding: 10px; }
+            .anime-title { font-size: 12px; height: 34px; margin-bottom: 8px; }
+            .episode-select-box { padding: 6px; margin-bottom: 8px; }
+            .episode-input { width: 50px; padding: 4px; font-size: 12px; }
+            .episode-unit { font-size: 11px; }
+            .btn-add-list { padding: 8px; font-size: 11px; }
+        }
     </style>
 </head>
 <body>
@@ -106,7 +119,7 @@
             
             <div class="search-box">
                 <div class="search-wrapper">
-                    <input type="text" id="search-keyword" class="search-input" placeholder="作品名を入力すると候補が出ます..." oninput="handleSearchSuggestions(this.value)">
+                    <input type="text" id="search-keyword" class="search-input" placeholder="作品名を入力すると候補が出ます..." autocomplete="off" oninput="handleSearchSuggestions(this.value)">
                     <ul class="suggestions-list" id="search-suggestions"></ul>
                 </div>
                 <button class="search-btn" onclick="executeSearch()">検索</button>
@@ -125,21 +138,23 @@
         </div>
     </main>
 
-    footer style="background-color: #0f172a; color: #94a3b8; padding: 40px 20px; text-align: center; font-size: 14px;">
-    <p style="margin: 0 0 12px 0;">
-        <a href="./terms.html" style="color: #94a3b8; text-decoration: none; font-weight: 800; font-size: 13px; transition: color 0.2s;" onmouseover="this.style.color='#white'" onmouseout="this.style.color='#94a3b8'">
-            利用規約・プライバシーポリシー
-        </a>
-    </p>
-    <p style="color: #334155; font-size: 12px; margin: 0;">&copy; 2026 アニ管理 All Rights Reserved.</p>
+    <footer style="background-color: #0f172a; color: #94a3b8; padding: 40px 20px; text-align: center; font-size: 14px;">
+        <p style="margin: 0 0 12px 0;">
+            <a href="./terms.html" style="color: #94a3b8; text-decoration: none; font-weight: 800; font-size: 13px; transition: color 0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='#94a3b8'">
+                利用規約・プライバシーポリシー
+            </a>
+        </p>
+        <p style="color: #334155; font-size: 12px; margin: 0;">&copy; 2026 アニ管理 All Rights Reserved.</p>
     </footer>
 
     <div class="toast" id="toast-notification" style="font-weight: 900;">🌟</div>
 
     <script>
+        // ⚠️ セキュリティ注意：本来フロントエンドにアクセストークンを直書きするのは非推奨です。
+        // 個人制作やNetlify/GitHub Pages等での簡易運用の場合はこれで動きますが、本格運用の際はVercel Functions等で隠蔽することをおすすめします。
         const ANNICT_TOKEN = 'xM12QcwCJtWXmLP3vhZ-ERrDx5wcd5Xr6fl75Klnybk';
         let searchResultsGlobal = [];
-        let suggestDebounceTimeout = null; // サジェスト制限用タイマー
+        let suggestDebounceTimeout = null; 
 
         window.onload = function() {
             generateTrendKeywords(); 
@@ -151,7 +166,6 @@
                 }
             });
 
-            // 検索候補以外の場所をクリックしたら候補一覧を閉じる親切設計
             document.addEventListener('click', function(e) {
                 const suggestionsContainer = document.getElementById('search-suggestions');
                 if (e.target.id !== 'search-keyword') {
@@ -160,19 +174,14 @@
             });
         };
 
-        // 🌟【バグ修正】アニクト（Annict）内の画像データを全探索して確実にURLを掘り起こす超重要関数
         function getBestAnimeImage(anime) {
             if (!anime || !anime.images) return '';
-            // 優先順位1: 推奨URL
             if (anime.images.recommended_url) return anime.images.recommended_url;
-            // 優先順位2: Twitterの画像URL（←ここが漏れていたため一部作品でNO IMAGEになっていました）
             if (anime.images.twitter && anime.images.twitter.image_url) return anime.images.twitter.image_url;
-            // 優先順位3: FacebookのOGP
             if (anime.images.facebook && anime.images.facebook.og_image_url) return anime.images.facebook.og_image_url;
             return '';
         }
 
-        // 🌟【新設】文字入力ごとにアニクトから高速に検索候補（5件）を取得して表示するサジェスト処理
         function handleSearchSuggestions(value) {
             const suggestionsContainer = document.getElementById('search-suggestions');
             const keyword = value.trim();
@@ -184,7 +193,6 @@
                 return;
             }
 
-            // タイピング中の負荷軽減（キーを叩き終わってから250ms後にAPIを呼ぶ）
             suggestDebounceTimeout = setTimeout(() => {
                 const apiURL = `https://api.annict.com/v1/works?filter_title=${encodeURIComponent(keyword)}&per_page=5&sort_watchers_count=desc&access_token=${ANNICT_TOKEN}`;
 
@@ -201,17 +209,16 @@
                         works.forEach(anime => {
                             const imgUrl = getBestAnimeImage(anime);
                             let imgHTML = imgUrl 
-                                ? `<img src="${imgUrl}" class="suggest-item-img">` 
+                                ? `<img src="${imgUrl}" class="suggest-item-img" alt="">` 
                                 : `<div class="suggest-item-img" style="display:flex; justify-content:center; align-items:center; color:#64748b; font-size:8px; font-weight:bold;">NO</div>`;
 
                             const itemLi = document.createElement('li');
                             itemLi.innerHTML = `${imgHTML}<div class="suggest-item-title">${anime.title}</div>`;
                             
-                            // 候補をクリックした時のアクション
                             itemLi.onclick = function() {
                                 document.getElementById('search-keyword').value = anime.title;
                                 suggestionsContainer.style.display = 'none';
-                                executeSearch(); // 自動検索を実行
+                                executeSearch(); 
                             };
                             
                             suggestionsContainer.appendChild(itemLi);
@@ -224,9 +231,10 @@
             }, 250);
         }
 
-        // 📊 画像付きトレンド20選自動生成
         function generateTrendKeywords() {
             const gridContainer = document.getElementById('trend-keywords-grid');
+            if (!gridContainer) return; // 🛠️ エラー落ち防止ガード
+
             const watchedList = JSON.parse(localStorage.getItem('watchedAnimes')) || [];
             const ratings = JSON.parse(localStorage.getItem('animeRatings')) || {};
 
@@ -282,7 +290,6 @@
             executeSearch();
         }
 
-        // 🔍 本格検索実行
         function executeSearch() {
             const keyword = document.getElementById('search-keyword').value.trim();
             if (!keyword) return;
@@ -311,7 +318,6 @@
 
                     resultsContainer.innerHTML = '';
                     works.forEach(anime => {
-                        // 💡 改修された完璧画像探索ロジックを適用
                         let imageUrl = getBestAnimeImage(anime);
                         let imageHTML = imageUrl ? `<img src="${imageUrl}" class="anime-img" alt="">` : `<div class="anime-img" style="background:#334155; display:flex; justify-content:center; align-items:center; color:#64748b; font-weight:bold; font-size:14px;">NO IMAGE</div>`;
 
@@ -350,7 +356,6 @@
                 });
         }
 
-        // ➕ 🔢 保存および上書き更新処理
         function addFromSearch(animeId) {
             const anime = searchResultsGlobal.find(item => String(item.id) === String(animeId));
             if (!anime) return;
@@ -361,7 +366,6 @@
             let watchedList = JSON.parse(localStorage.getItem('watchedAnimes')) || [];
             const existingIndex = watchedList.findIndex(item => String(item.id) === String(animeId));
 
-            // 💡 ここでも強化された画像取得ロジックを使って保存
             let imageUrl = getBestAnimeImage(anime);
 
             const targetWatchedItem = {
