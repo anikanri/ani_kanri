@@ -82,9 +82,33 @@
         .toast.show { opacity: 1; transform: translateY(0); }
 
         @media (max-width: 950px) { .trend-grid { grid-template-columns: repeat(2, 1fr); } }
-        /* 🛠️ スマホ時の検索ボックスのレイアウト崩れを防ぐ調整 */
+        
+        /* 📱 レスポンシブ（スマホ用）対応 */
+        @media (max-width: 768px) {
+            .row {
+                flex-direction: column;
+                gap: 12px;
+                padding: 12px;
+            }
+            .logo {
+                font-size: 20px;
+            }
+            .menu {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 6px;
+                width: 100%;
+            }
+            .menu a {
+                font-size: 12px;
+                padding: 6px 14px;
+            }
+            main {
+                padding-top: 150px;
+            }
+        }
+
         @media (max-width: 550px) { 
-            main { padding-top: 100px; }
             .search-box { flex-direction: column; padding: 16px; gap: 8px; margin-bottom: 24px; }
             .search-btn { width: 100%; height: 48px; }
             .trend-grid { grid-template-columns: 1fr; gap: 10px; margin-bottom: 30px; } 
@@ -125,14 +149,14 @@
                 <button class="search-btn" onclick="executeSearch()">検索</button>
             </div>
 
+            <section id="results-section" style="margin-bottom: 40px; display: none;">
+                <h3 class="section-title" id="results-title">🎯 検索結果</h3>
+                <div class="results-grid" id="search-results-list"></div>
+            </section>
+
             <section class="trend-section-wrapper" id="trend-section">
                 <h3 class="section-title">📈 ユーザーが今注目しているトレンド作品（TOP 20）</h3>
                 <div class="trend-grid" id="trend-keywords-grid"></div>
-            </section>
-
-            <section style="margin-top: 20px;">
-                <h3 class="section-title" id="results-title" style="display: none;">🎯 検索結果</h3>
-                <div class="results-grid" id="search-results-list"></div>
             </section>
 
         </div>
@@ -150,8 +174,6 @@
     <div class="toast" id="toast-notification" style="font-weight: 900;">🌟</div>
 
     <script>
-        // ⚠️ セキュリティ注意：本来フロントエンドにアクセストークンを直書きするのは非推奨です。
-        // 個人制作やNetlify/GitHub Pages等での簡易運用の場合はこれで動きますが、本格運用の際はVercel Functions等で隠蔽することをおすすめします。
         const ANNICT_TOKEN = 'xM12QcwCJtWXmLP3vhZ-ERrDx5wcd5Xr6fl75Klnybk';
         let searchResultsGlobal = [];
         let suggestDebounceTimeout = null; 
@@ -233,7 +255,7 @@
 
         function generateTrendKeywords() {
             const gridContainer = document.getElementById('trend-keywords-grid');
-            if (!gridContainer) return; // 🛠️ エラー落ち防止ガード
+            if (!gridContainer) return; 
 
             const watchedList = JSON.parse(localStorage.getItem('watchedAnimes')) || [];
             const ratings = JSON.parse(localStorage.getItem('animeRatings')) || {};
@@ -294,10 +316,11 @@
             const keyword = document.getElementById('search-keyword').value.trim();
             if (!keyword) return;
 
+            const resultsSection = document.getElementById('results-section');
             const resultsContainer = document.getElementById('search-results-list');
-            const resultsTitle = document.getElementById('results-title');
             
-            resultsTitle.style.display = 'block';
+            // 変更点：外側のセクションごと表示状態にする
+            resultsSection.style.display = 'block';
             resultsContainer.innerHTML = '<p style="color:#64748b; font-weight:bold; grid-column:1/-1; text-align:center; padding:20px 0;">検索中...</p>';
 
             const apiURL = `https://api.annict.com/v1/works?filter_title=${encodeURIComponent(keyword)}&sort_watchers_count=desc&per_page=20&access_token=${ANNICT_TOKEN}`;

@@ -61,6 +61,39 @@
         /* 🔔 トースト通知（画面右下に出るポップアップ） */
         .toast { position: fixed; bottom: 24px; right: 24px; background: #0f172a; color: white; padding: 12px 24px; border-radius: 12px; font-size: 14px; font-weight: 800; box-shadow: 0 10px 25px rgba(0,0,0,0.2); opacity: 0; transform: translateY(10px); pointer-events: none; transition: all 0.3s ease; z-index: 3000; }
         .toast.show { opacity: 1; transform: translateY(0); }
+
+        /* 📱 スマホ画面（画面幅768px以下）用の調節設定 */
+@media (max-width: 768px) {
+    /* メインコンテンツの上の余白を狭くする（ヘッダーに被らない程度に調整） */
+    main {
+        padding: 90px 0 40px;
+    }
+
+    /* セクションタイトルの文字を少し小さく */
+    .section-title {
+        font-size: 18px;
+        margin-bottom: 16px;
+    }
+
+    /* 横スクロールカードの横幅を 200px → 140px に縮小 */
+    .scroll-container .scroll-card {
+        flex: 0 0 140px; 
+        border-radius: 12px; /* 角丸も少しマイルドに */
+    }
+
+    /* カード内の文字サイズや高さをスマホ向けに最適化 */
+    .anime-title-text {
+        font-size: 12px;
+        height: 34px;
+        margin-bottom: 6px;
+    }
+
+    /* ボタンのパディングを少し狭くして収まりを良くする */
+    .btn-add-list {
+        padding: 6px;
+        font-size: 11px;
+    }
+}
     </style>
 </head>
 <body>
