@@ -6,61 +6,51 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght=100..900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./css/style.css">
-    <title>アニ管理 - ホーム</title>
+    <title>プロフィール設定 - アニ管理</title>
+
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
     <style>
         html, body { height: 100%; margin: 0; }
         body { display: flex; flex-direction: column; font-family: 'Noto Sans JP', sans-serif; background-color: #f4f6f9; color: #333; }
         main { flex: 1; padding: 120px 0 60px; }
-        .container { max-width: 1200px; margin: 0 auto; width: 90%; }
+        .container { max-width: 600px; margin: 0 auto; width: 90%; }
         
-        /* 📱 統一された大型美しいヘッダー */
+        /* 📱 ヘッダー（スマホ対応：縦伸びを防ぐ設定を追加） */
         header { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px); border-bottom: 1px solid #1e293b; position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; box-sizing: border-box; }
-        .row { max-width: 1400px; margin: 0 auto; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .row { max-width: 1400px; margin: 0 auto; padding: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .logo { font-weight: 900; font-size: 24px; color: white; letter-spacing: -0.5px; text-decoration: none; }
         .menu { display: flex; gap: 12px; list-style: none; margin: 0; padding: 0; align-items: center; }
-        .menu a { color: #cbd5e1; text-decoration: none; font-size: 16px; font-weight: 800; padding: 10px 22px; border-radius: 24px; transition: all 0.25s ease; letter-spacing: 0.5px; }
-        .menu a:hover { color: white; background: rgba(255, 255, 255, 0.08); }
+        .menu a { color: #cbd5e1; text-decoration: none; font-size: 16px; font-weight: 800; padding: 10px 22px; border-radius: 24px; transition: all 0.25s ease; }
+
+        /* 設定カード */
+        .settings-card { background: white; border-radius: 24px; padding: 35px; border: 1px solid #e2e8f0; box-shadow: 0 4px 20px rgba(0,0,0,0.02); }
+        .settings-title { font-size: 20px; font-weight: 900; color: #0f172a; margin-top: 0; margin-bottom: 25px; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; }
         
-        /* 🏅 マイランキングページ誘導ボタン */
-        .menu a.my-rank-nav-btn { background: linear-gradient(135deg, #ff9500, #ffcc00); color: #0f172a; box-shadow: 0 4px 10px rgba(255,149,0,0.2); }
-        .menu a.my-rank-nav-btn:hover { color: #0f172a; opacity: 0.9; }
-
-        .section-title { font-size: 24px; font-weight: 900; color: #0f172a; margin-bottom: 24px; border-left: 6px solid #ff3b30; padding-left: 12px; }
-
-        /* 👈👉 今期アニメ用の横スクロールコンテナ */
-        .scroll-container { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 50px; scrollbar-width: thin; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
-        .scroll-container::-webkit-scrollbar { height: 8px; }
-        .scroll-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .form-group { margin-bottom: 24px; }
+        .form-group label { display: block; font-weight: 800; font-size: 14px; margin-bottom: 10px; color: #475569; }
+        .form-group input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #cbd5e1; box-sizing: border-box; font-size: 15px; background: #f8fafc; transition: all 0.2s; }
+        .form-group input:focus { border-color: #3b82f6; background: white; outline: none; }
         
-        /* 横スクロール用のカードサイズ固定設定 */
-        .scroll-card { flex: 0 0 200px; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border: 1px solid #e2e8f0; display: flex; flex-direction: column; position: relative; }
+        .btn-save { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; width: 100%; padding: 14px; border-radius: 12px; font-weight: 800; font-size: 16px; cursor: pointer; box-shadow: 0 4px 12px rgba(16,185,129,0.2); transition: 0.2s; margin-bottom: 15px; }
+        .btn-save:hover { opacity: 0.95; transform: translateY(-1px); }
 
-        /* 👥 ランキング用グリッド表示（今期ランキング・総合ランキング共通） */
-        .anime-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 24px; margin-bottom: 60px; }
-        .anime-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border: 1px solid #e2e8f0; display: flex; flex-direction: column; position: relative; }
+        /* Googleログインボタンの配置用スタイル */
+        .google-login-area { margin-bottom: 30px; padding: 20px; background: #f8fafc; border-radius: 16px; border: 1px dashed #cbd5e1; text-align: center; }
+        .google-login-title { font-size: 13px; font-weight: 800; color: #64748b; margin-top: 0; margin-bottom: 12px; }
+        .google-btn-flex { display: flex; justify-content: center; }
 
-        /* 共通カードパーツ */
-        .anime-img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; display: block; }
-        .anime-body { padding: 14px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
-        .anime-title-text { font-weight: 800; font-size: 14px; color: #0f172a; margin: 0 0 10px 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 38px; }
-        
-        /* 👑 ランキング順位バッジ */
-        .rank-badge { position: absolute; top: 12px; left: 12px; width: 34px; height: 34px; border-radius: 50%; color: white; font-weight: 900; font-size: 15px; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 8px rgba(0,0,0,0.15); z-index: 10; }
-        .rank-1 { background: linear-gradient(135deg, #ffd700, #ffa500); }
-        .rank-2 { background: linear-gradient(135deg, #c0c0c0, #808080); }
-        .rank-3 { background: linear-gradient(135deg, #cd7f32, #8b4513); }
-        .rank-other { background: #475569; }
-        .score-tag { font-size: 13px; color: #ffcc00; font-weight: bold; background: #0f172a; padding: 5px; border-radius: 8px; text-align: center; }
+        .back-link { display: block; text-align: center; margin-top: 20px; color: #64748b; font-weight: 800; font-size: 14px; text-decoration: none; }
+        .back-link:hover { color: #0f172a; }
 
-        /* ➕ 検索画面風の追加ボタンのスタイリング */
-        .btn-add-list { width: 100%; background: linear-gradient(135deg, #2563eb, #3b82f6); color: white; border: none; padding: 8px; border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.2); text-align: center; display: block; margin-top: 10px; box-sizing: border-box; }
-        .btn-add-list:hover { background: linear-gradient(135deg, #1d4ed8, #2563eb); transform: translateY(-1px); box-shadow: 0 6px 14px rgba(59, 130, 246, 0.3); }
-        .btn-add-list.added { background: #e2e8f0; color: #64748b; cursor: not-allowed; box-shadow: none; transform: none; }
-
-        /* 🔔 トースト通知（画面右下に出るポップアップ） */
-        .toast { position: fixed; bottom: 24px; right: 24px; background: #0f172a; color: white; padding: 12px 24px; border-radius: 12px; font-size: 14px; font-weight: 800; box-shadow: 0 10px 25px rgba(0,0,0,0.2); opacity: 0; transform: translateY(10px); pointer-events: none; transition: all 0.3s ease; z-index: 3000; }
-        .toast.show { opacity: 1; transform: translateY(0); }
+        /* スマホ用の縮尺・ヘッダー調整（CSSの一番下に配置） */
+        @media screen and (max-width: 768px) {
+            header { position: static; }
+            main { padding: 30px 0 60px; }
+            .row { flex-direction: column; text-align: center; }
+            .menu { flex-wrap: wrap; justify-content: center; padding-top: 10px; }
+            .menu a { padding: 8px 16px; font-size: 14px; }
+        }
     </style>
 </head>
 <body>
@@ -73,7 +63,6 @@
               <li><a href="./search.html">検索</a></li>
               <li><a href="./rating.html">評価</a></li>
               <li><a href="./users/index.html">マイページ</a></li>
-              <li><a href="./my-ranking.html" class="my-rank-nav-btn">🏅 マイランキング</a></li>
             </ul>
          </nav>
         </div>
@@ -81,248 +70,101 @@
 
     <main>
         <div class="container">
-            <section>
-                <h3 class="section-title">📺 今期話題のアニメ作品</h3>
-                <div class="scroll-container" id="current-season-scroll">
-                    <p style="color: #64748b; font-weight: bold; padding: 20px;">アニメデータを読み込み中...</p>
-                </div>
-            </section>
-
-            <section style="border-top: 2px solid #e2e8f0; padding-top: 40px;">
-                <h3 class="section-title" id="current-rank-title">🏆 今期アニメ総合ランキング</h3>
-                <div class="anime-grid" id="current-season-ranking-grid">
+            
+            <div class="settings-card">
+                <h3 class="settings-title">⚙️ プロフィール設定</h3>
+                
+                <div class="google-login-area">
+                    <p class="google-login-title">Googleアカウントで簡単名前入力</p>
+                    <div class="google-btn-flex">
+                        <div id="g_id_onload"
+                             data-client_id="xM12QcwCJtWXmLP3vhZ-ERrDx5wcd5Xr6fl75Klnybk"
+                             data-callback="handleCredentialResponse">
+                        </div>
+                        <div class="g_id_signin" data-type="standard"></div>
                     </div>
-            </section>
-
-            <section style="border-top: 2px solid #e2e8f0; padding-top: 40px;">
-                <h3 class="section-title">👥 全アニメ総合ランキング</h3>
-                <div class="anime-grid" id="global-ranking-grid">
                 </div>
-            </section>
+
+                <div class="form-group">
+                    <label for="username-input">👤 ユーザー名</label>
+                    <input type="text" id="username-input" placeholder="名前を入力してください">
+                </div>
+                
+                <div class="form-group">
+                    <label for="avatar-input">🖼️ アイコン画像URL</label>
+                    <input type="text" id="avatar-input" placeholder="https://example.com/your-icon.png">
+                    <p style="font-size: 11px; color: #94a3b8; margin: 6px 0 0 0;">※インターネット上の画像URLを貼り付けるとアイコンが変わります。</p>
+                </div>
+                
+                <button class="btn-save" onclick="saveProfile()">設定変更を保存する</button>
+                
+                <a href="./users/index.html" class="back-link">⬅️ マイページに戻して確認する</a>
+            </div>
+
         </div>
     </main>
 
-    <footer style="background-color: #0f172a; color: #94a3b8; padding: 40px 20px; text-align: center; font-size: 14px;">
-    <p style="margin: 0 0 12px 0;">
-        <a href="./terms.html" style="color: #94a3b8; text-decoration: none; font-weight: 800; font-size: 13px; transition: color 0.2s;" onmouseover="this.style.color='#white'" onmouseout="this.style.color='#94a3b8'">
-            利用規約・プライバシーポリシー
-        </a>
-    </p>
-    <p style="color: #334155; font-size: 12px; margin: 0;">&copy; 2026 アニ管理 All Rights Reserved.</p>
-    </footer>
-
-    <div class="toast" id="toast-notification">🌟 マイページにリスト追加しました！</div>
-
     <script>
-        // ==========================================
-        // ⚙️ シーズン・各種管理用設定エリア
-        // ==========================================
-        // 💡 ここを変えるだけで、一覧の取得先も今期ランキングの抽出対象シーズンもすべて一括で夏や冬に切り替わります！
-        // （例：2026-summer, 2026-autumn, 2026-winter など）
-        const CURRENT_SEASON = '2026-spring'; 
-        
-        const ANNICT_TOKEN = 'xM12QcwCJtWXmLP3vhZ-ERrDx5wcd5Xr6fl75Klnybk';
-        let fetchedAnimesGlobal = []; 
-
         window.onload = function() {
-            // タイトルを現在のターゲットシーズン名に合わせて微調整（お好みで変更可能）
-            updateSeasonTitleDisplay();
-            
-            fetchCurrentSeasonAnimes();
-            renderCurrentSeasonRanking(); // 💡 新設：今期ランキングの集計・描画起動
-            renderGlobalRanking();
+            loadCurrentProfile();
         };
 
-        // シーズン表記名を見やすくタイトル等に補足反映する関数
-        function updateSeasonTitleDisplay() {
-            const titleEl = document.getElementById('current-rank-title');
-            if (titleEl) {
-                let seasonText = "今期";
-                if(CURRENT_SEASON.includes("spring")) seasonText = "春期";
-                if(CURRENT_SEASON.includes("summer")) seasonText = "夏期";
-                if(CURRENT_SEASON.includes("autumn")) seasonText = "秋期";
-                if(CURRENT_SEASON.includes("winter")) seasonText = "冬期";
-                titleEl.innerText = `🏆 ${seasonText}アニメ総合ランキング`;
+        // 現在入っている名前とアイコンURLを最初からフォームに表示させておく
+        function loadCurrentProfile() {
+            const savedName = localStorage.getItem('username') || '';
+            const savedAvatar = localStorage.getItem('userAvatar') || '';
+            document.getElementById('username-input').value = savedName;
+            document.getElementById('avatar-input').value = savedAvatar;
+        }
+
+        // 変更保存
+        function saveProfile() {
+            const newName = document.getElementById('username-input').value.trim();
+            const newAvatar = document.getElementById('avatar-input').value.trim();
+
+            if(!newName) {
+                alert('ユーザー名が空欄です。入力してください！');
+                return;
             }
-        }
 
-        function fetchCurrentSeasonAnimes() {
-            const scrollContainer = document.getElementById('current-season-scroll');
-            // 💡 設定エリアで指定した CURRENT_SEASON を自動でAPIに挿入します
-            const apiURL = `https://api.annict.com/v1/works?filter_season=${CURRENT_SEASON}&sort_watchers_count=desc&per_page=15&access_token=${ANNICT_TOKEN}`;
-
-            fetch(apiURL)
-                .then(res => res.json())
-                .then(data => {
-                    const works = data.works || [];
-                    fetchedAnimesGlobal = works; 
-                    
-                    if (works.length === 0) {
-                        scrollContainer.innerHTML = '<p style="color: #64748b; padding: 20px;">今期の作品情報が見つかりませんでした。</p>';
-                        return;
-                    }
-
-                    const watchedList = JSON.parse(localStorage.getItem('watchedAnimes')) || [];
-                    const savedIds = watchedList.map(item => String(item.id));
-
-                    scrollContainer.innerHTML = '';
-                    works.forEach(anime => {
-                        let imageUrl = '';
-                        if (anime.images && anime.images.recommended_url) imageUrl = anime.images.recommended_url;
-                        else if (anime.images && anime.images.facebook && anime.images.facebook.og_image_url) imageUrl = anime.images.facebook.og_image_url;
-
-                        let imageHTML = imageUrl ? `<img src="${imageUrl}" class="anime-img" alt="">` : `<div class="anime-img" style="background:#334155; display:flex; justify-content:center; align-items:center; color:#64748b; font-weight:bold;">NO IMAGE</div>`;
-
-                        const isAdded = savedIds.includes(String(anime.id));
-                        const buttonHTML = isAdded 
-                            ? `<button class="btn-add-list added" disabled>✅ リスト追加済み</button>`
-                            : `<button class="btn-add-list" id="btn-${anime.id}" onclick="addFromHome('${anime.id}')">➕ リストに追加</button>`;
-
-                        const card = `
-                            <div class="scroll-card">
-                                ${imageHTML}
-                                <div class="anime-body">
-                                    <p class="anime-title-text">${anime.title}</p>
-                                    <span style="font-size:11px; color:#ff3b30; font-weight:bold; background:#fff1f0; padding:3px 8px; border-radius:5px; text-align:center; display:inline-block; width:fit-content;">🔥 注目作品</span>
-                                    ${buttonHTML} 
-                                </div>
-                            </div>
-                        `;
-                        scrollContainer.insertAdjacentHTML('beforeend', card);
-                    });
-                }).catch(() => {
-                    scrollContainer.innerHTML = '<p style="color: #64748b; padding: 20px;">データの取得に失敗しました。</p>';
-                });
-        }
-
-        function addFromHome(animeId) {
-            const anime = fetchedAnimesGlobal.find(item => String(item.id) === String(animeId));
-            if (!anime) return;
-
-            let watchedList = JSON.parse(localStorage.getItem('watchedAnimes')) || [];
+            localStorage.setItem('username', newName);
+            localStorage.setItem('userAvatar', newAvatar);
             
-            if (watchedList.some(item => String(item.id) === String(animeId))) {
-                return;
-            }
-
-            let imageUrl = '';
-            if (anime.images && anime.images.recommended_url) imageUrl = anime.images.recommended_url;
-            else if (anime.images && anime.images.facebook && anime.images.facebook.og_image_url) imageUrl = anime.images.facebook.og_image_url;
-
-            const newWatchedItem = {
-                id: anime.id,
-                title: anime.title,
-                title_kana: anime.title_kana || '', 
-                media_name: anime.media_name || 'tv', 
-                episodes_count: anime.episodes_count || 12,
-                image: imageUrl,
-                season_name: anime.season_name || CURRENT_SEASON // 💡 選択シーズンを反映
-            };
-
-            watchedList.push(newWatchedItem);
-            localStorage.setItem('watchedAnimes', JSON.stringify(watchedList));
-
-            const targetBtn = document.getElementById(`btn-${animeId}`);
-            if (targetBtn) {
-                targetBtn.classList.add('added');
-                targetBtn.disabled = true;
-                targetBtn.innerText = '✅ リスト追加済み';
-            }
-
-            const toast = document.getElementById('toast-notification');
-            toast.classList.add('show');
-            setTimeout(() => { toast.classList.remove('show'); }, 3000);
-
-            // リスト追加されたため、各ランキング表示をリアルタイム更新
-            renderCurrentSeasonRanking();
-            renderGlobalRanking();
+            alert('プロフィールの変更内容を保存しました！');
         }
 
-        // 🌟【新設】ユーザー全員データから「今期アニメ（CURRENT_SEASON）」だけを狙って集計するランキング
-        function renderCurrentSeasonRanking() {
-            const currentGrid = document.getElementById('current-season-ranking-grid');
-            const watchedList = JSON.parse(localStorage.getItem('watchedAnimes')) || [];
-            const ratings = JSON.parse(localStorage.getItem('animeRatings')) || {};
+        // 👇 3. Googleログインが成功した時に動くJavaScriptのプログラム
+        function handleCredentialResponse(response) {
+            // Googleから届いた暗号化データを解読する
+            const responsePayload = parseJwt(response.credential);
 
-            // 1. 保存されたデータの中から、今期（CURRENT_SEASON）に合致するデータのみを抽出
-            let currentSeasonItems = watchedList.filter(anime => {
-                // Annict側の「2026-spring」等の文字列と完全一致するか判定
-                return anime.season_name === CURRENT_SEASON;
-            });
+            console.log("ID: " + responsePayload.sub);
+            console.log('Full Name: ' + responsePayload.name);
+            console.log('Given Name: ' + responsePayload.given_name);
+            console.log('Family Name: ' + responsePayload.family_name);
+            console.log("Image URL: " + responsePayload.picture);
+            console.log("Email: " + responsePayload.email);
 
-            if (currentSeasonItems.length === 0) {
-                currentGrid.innerHTML = '<p style="color: #64748b; font-weight: bold; grid-column: span 4; text-align: center; padding: 20px 0;">現在設定中のシーズンに該当する評価・追加データがありません。</p>';
-                return;
-            }
+            // 取得した「Googleの名前」と「Googleのアイコン画像」を入力欄に自動セット
+            document.getElementById('username-input').value = responsePayload.name;
+            document.getElementById('avatar-input').value = responsePayload.picture;
 
-            // 2. 評価平均値を計算して割り当て
-            let rankedItems = currentSeasonItems.map(anime => {
-                const rate = ratings[anime.id] || { character: 0, art: 0, tempo: 0, story: 0 };
-                const avg = ((rate.character + rate.art + rate.tempo + rate.story) / 4);
-                return { ...anime, score: avg };
-            });
+            // ローカルストレージ（ブラウザ内）にも即時保存
+            localStorage.setItem('username', responsePayload.name);
+            localStorage.setItem('userAvatar', responsePayload.picture);
 
-            // 3. スコアの高い順（降順）にソート
-            rankedItems.sort((a, b) => b.score - a.score);
-
-            // 4. 今期ランキング（最大12件まで）のHTML生成
-            currentGrid.innerHTML = '';
-            rankedItems.slice(0, 12).forEach((anime, idx) => {
-                const rank = idx + 1;
-                let badgeClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other';
-                let imageHTML = anime.image ? `<img src="${anime.image}" class="anime-img" alt="">` : `<div class="anime-img" style="background:#334155; display:flex; justify-content:center; align-items:center; color:#64748b; font-weight:bold;">NO IMAGE</div>`;
-
-                const card = `
-                    <div class="anime-card">
-                        <div class="rank-badge ${badgeClass}">${rank}</div>
-                        ${imageHTML}
-                        <div class="anime-body">
-                            <p class="anime-title-text">${anime.title}</p>
-                            <div class="score-tag">⭐ 総合平均: ${anime.score.toFixed(1)}</div>
-                        </div>
-                    </div>
-                `;
-                currentGrid.insertAdjacentHTML('beforeend', card);
-            });
+            alert('Googleログインに成功しました！名前とアイコンを自動セットしました。');
         }
 
-        // 👥 全アニメ総合ランキング表示（シーズン不問で全体ソート）
-        function renderGlobalRanking() {
-            const globalGrid = document.getElementById('global-ranking-grid');
-            const watchedList = JSON.parse(localStorage.getItem('watchedAnimes')) || [];
-            const ratings = JSON.parse(localStorage.getItem('animeRatings')) || {};
+        // JWT（Googleのデータ）を解読するための必須のオマジナイ関数
+        function parseJwt(token) {
+            var base64Url = token.split('.')[1];
+            var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
 
-            if (watchedList.length === 0) {
-                globalGrid.innerHTML = '<p style="color: #64748b; font-weight: bold; grid-column: span 4; text-align: center; padding: 20px 0;">まだ評価データが蓄積されていません。作品を評価するとここに反映されます！</p>';
-                return;
-            }
-
-            let rankedItems = watchedList.map(anime => {
-                const rate = ratings[anime.id] || { character: 0, art: 0, tempo: 0, story: 0 };
-                const avg = ((rate.character + rate.art + rate.tempo + rate.story) / 4);
-                return { ...anime, score: avg };
-            });
-
-            rankedItems.sort((a, b) => b.score - a.score);
-
-            globalGrid.innerHTML = '';
-            rankedItems.slice(0, 12).forEach((anime, idx) => {
-                const rank = idx + 1;
-                let badgeClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other';
-                let imageHTML = anime.image ? `<img src="${anime.image}" class="anime-img" alt="">` : `<div class="anime-img" style="background:#334155; display:flex; justify-content:center; align-items:center; color:#64748b; font-weight:bold;">NO IMAGE</div>`;
-
-                const card = `
-                    <div class="anime-card">
-                        <div class="rank-badge ${badgeClass}">${rank}</div>
-                        ${imageHTML}
-                        <div class="anime-body">
-                            <p class="anime-title-text">${anime.title}</p>
-                            <div class="score-tag">⭐ 総合平均: ${anime.score.toFixed(1)}</div>
-                        </div>
-                    </div>
-                `;
-                globalGrid.insertAdjacentHTML('beforeend', card);
-            });
+            return JSON.parse(jsonPayload);
         }
     </script>
 </body>
