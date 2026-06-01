@@ -55,14 +55,20 @@
         .t-rank-other { background: #64748b; }
         
         /* トレンド用ミニ画像 */
-        .trend-img-wrapper { width: 55px; height: 100%; position: relative; flex-shrink: 0; background: #334155; }
+        .trend-img-wrapper { width: 55px; height: 100%; position: relative; flex-shrink: 0; background: #334155; display: flex; align-items: center; justify-content: center; }
         .trend-anime-img { width: 100%; height: 100%; object-fit: cover; }
         .trend-name { font-size: 12px; font-weight: 800; color: #1e293b; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-all; }
 
         /* 🎬 検索結果表示用グリッド */
         .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 24px; }
         .anime-card { background: white; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; display: flex; flex-direction: column; }
-        .anime-img { width: 100%; aspect-ratio: 3/4; object-fit: cover; }
+        
+        /* 🛠️ 画像コンテナに背景色を設定し、読み込み前アイコンを表示させない */
+        .anime-img-wrapper { width: 100%; aspect-ratio: 3/4; background: #1e293b; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .anime-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        /* 🛠️ 画像の読み込みが壊れた時、または無い時に出す文字スタイル */
+        .img-placeholder { color: #64748b; font-weight: 900; font-size: 14px; text-align: center; position: absolute; }
+
         .card-body { padding: 16px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
         .anime-title { font-size: 14px; font-weight: 800; margin: 0 0 12px; line-height: 1.4; height: 40px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         
@@ -204,6 +210,16 @@
             return '';
         }
 
+        // 🛠️ 画像読み込み失敗時(直リンク拒否など)にファイルアイコンを出さないためのエラーハンドラ
+        function handleImgError(img, text) {
+            const container = img.parentNode;
+            img.style.display = 'none'; // 壊れた画像を非表示にする
+            const placeholder = document.createElement('div');
+            placeholder.className = 'img-placeholder';
+            placeholder.innerText = text;
+            container.appendChild(placeholder);
+        }
+
         function handleSearchSuggestions(value) {
             const suggestionsContainer = document.getElementById('search-suggestions');
             const keyword = value.trim();
@@ -231,7 +247,7 @@
                         works.forEach(anime => {
                             const imgUrl = getBestAnimeImage(anime);
                             let imgHTML = imgUrl 
-                                ? `<img src="${imgUrl}" class="suggest-item-img" alt="">` 
+                                ? `<img src="${imgUrl}" class="suggest-item-img" alt="" referrerpolicy="no-referrer" onerror="this.style.display='none'">` 
                                 : `<div class="suggest-item-img" style="display:flex; justify-content:center; align-items:center; color:#64748b; font-size:8px; font-weight:bold;">NO</div>`;
 
                             const itemLi = document.createElement('li');
@@ -292,8 +308,8 @@
                 const rank = index + 1;
                 let rankClass = rank === 1 ? 't-rank-1' : rank === 2 ? 't-rank-2' : rank === 3 ? 't-rank-3' : 't-rank-other';
                 let imgHTML = item.img 
-                    ? `<img src="${item.img}" class="trend-anime-img" alt="">` 
-                    : `<div style="width:100%; height:100%; background:#1e293b; display:flex; justify-content:center; align-items:center; color:#475569; font-size:9px; font-weight:bold;">ANIME</div>`;
+                    ? `<img src="${item.img}" class="trend-anime-img" alt="" referrerpolicy="no-referrer" onerror="handleImgError(this, 'ANIME')">` 
+                    : `<div class="img-placeholder" style="font-size:9px;">ANIME</div>`;
 
                 const itemHTML = `
                     <div class="trend-item" onclick="clickTrendKeyword('${item.title}')" style="position: relative;">
@@ -319,7 +335,6 @@
             const resultsSection = document.getElementById('results-section');
             const resultsContainer = document.getElementById('search-results-list');
             
-            // 変更点：外側のセクションごと表示状態にする
             resultsSection.style.display = 'block';
             resultsContainer.innerHTML = '<p style="color:#64748b; font-weight:bold; grid-column:1/-1; text-align:center; padding:20px 0;">検索中...</p>';
 
@@ -342,7 +357,11 @@
                     resultsContainer.innerHTML = '';
                     works.forEach(anime => {
                         let imageUrl = getBestAnimeImage(anime);
-                        let imageHTML = imageUrl ? `<img src="${imageUrl}" class="anime-img" alt="">` : `<div class="anime-img" style="background:#334155; display:flex; justify-content:center; align-items:center; color:#64748b; font-weight:bold; font-size:14px;">NO IMAGE</div>`;
+                        
+                        // 🛠️ 天才修正：<img>タグを直接並べるのではなく、ラッパー<div>で包み、エラー時（onerror）にファイルアイコンを抹殺する処理を入れました。
+                        let imageHTML = imageUrl 
+                            ? `<div class="anime-img-wrapper"><img src="${imageUrl}" class="anime-img" alt="" referrerpolicy="no-referrer" onerror="handleImgError(this, 'NO IMAGE')"></div>` 
+                            : `<div class="anime-img-wrapper"><div class="img-placeholder">NO IMAGE</div></div>`;
 
                         const existingRecord = watchedList.find(item => String(item.id) === String(anime.id));
                         const defaultEp = existingRecord && existingRecord.current_episode ? existingRecord.current_episode : 1;

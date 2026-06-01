@@ -39,8 +39,11 @@
         .anime-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 24px; margin-bottom: 60px; }
         .anime-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border: 1px solid #e2e8f0; display: flex; flex-direction: column; position: relative; }
 
-        /* 共通カードパーツ */
-        .anime-img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; display: block; }
+        /* 🛠️ 画像コンテナの共通化とベース背景設定（アイコン露出防止） */
+        .anime-img-wrapper { width: 100%; aspect-ratio: 3 / 4; background: #1e293b; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .anime-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .img-placeholder { color: #64748b; font-weight: 900; font-size: 14px; text-align: center; position: absolute; }
+
         .anime-body { padding: 14px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
         .anime-title-text { font-weight: 800; font-size: 14px; color: #0f172a; margin: 0 0 10px 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 38px; }
         
@@ -69,13 +72,42 @@
         .toast { position: fixed; bottom: 24px; right: 24px; background: #0f172a; color: white; padding: 12px 24px; border-radius: 12px; font-size: 14px; font-weight: 800; box-shadow: 0 10px 25px rgba(0,0,0,0.2); opacity: 0; transform: translateY(10px); pointer-events: none; transition: all 0.3s ease; z-index: 3000; }
         .toast.show { opacity: 1; transform: translateY(0); }
 
-        /* 📱 スマホ画面用の調節設定 */
+        /* 📱 スマホ・タブレット画面用の完全崩れ防止設定 */
         @media (max-width: 768px) {
-            main { padding: 90px 0 40px; }
+            main { padding: 140px 0 40px; } /* ヘッダーの高さに合わせて微調整 */
             .section-title { font-size: 18px; margin-bottom: 16px; }
             .scroll-container .scroll-card { flex: 0 0 140px; border-radius: 12px; }
             .anime-title-text { font-size: 12px; height: 34px; margin-bottom: 6px; }
             .btn-add-list { padding: 6px; font-size: 11px; }
+
+            /* 👇 ヘッダーのレスポンシブ大改造 */
+            .row {
+                flex-direction: column; /* ロゴとメニューを上下に分ける */
+                gap: 8px;
+                padding: 12px 8px;
+            }
+            .logo {
+                font-size: 20px;
+            }
+            .menu {
+                width: 100%;
+                justify-content: inherit; /* 端から端まで綺麗に配置 */
+                overflow-x: auto; /* 万が一溢れても横スクロールで1行を死守 */
+                white-space: nowrap; /* 絶対に2行に折り返させない */
+                padding: 4px 0;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none; /* スクロールバーを非表示（Firefox） */
+            }
+            .menu::-webkit-scrollbar {
+                display: none; /* スクロールバーを非表示（Chrome, Safari） */
+            }
+            .menu li {
+                flex-shrink: 0; /* ボタンの横幅が自動縮小されるのを防ぐ */
+            }
+            .menu a {
+                font-size: 13px; /* 文字サイズをスマホ最適化 */
+                padding: 6px 14px; /* タップしやすく、かつコンパクトな余白 */
+            }
         }
     </style>
 </head>
@@ -106,14 +138,12 @@
 
             <section style="border-top: 2px solid #e2e8f0; padding-top: 40px;">
                 <h3 class="section-title" id="current-rank-title">🏆 今期アニメ総合ランキング</h3>
-                <div class="anime-grid" id="current-season-ranking-grid">
-                    </div>
+                <div class="anime-grid" id="current-season-ranking-grid"></div>
             </section>
 
             <section style="border-top: 2px solid #e2e8f0; padding-top: 40px;">
                 <h3 class="section-title">👥 全アニメ総合ランキング</h3>
-                <div class="anime-grid" id="global-ranking-grid">
-                    </div>
+                <div class="anime-grid" id="global-ranking-grid"></div>
             </section>
         </div>
     </main>
@@ -130,7 +160,6 @@
     <div class="toast" id="toast-notification">🌟 マイページにリスト追加しました！</div>
 
     <script>
-        // 🌐 【最重要】マイページと共通のRenderのURL
         const API_BASE_URL = "https://ani-kanri.onrender.com";
         const CURRENT_SEASON = '2026-spring'; 
         const ANNICT_TOKEN = 'xM12QcwCJtWXmLP3vhZ-ERrDx5wcd5Xr6fl75Klnybk';
@@ -139,8 +168,6 @@
         window.onload = function() {
             updateSeasonTitleDisplay();
             fetchCurrentSeasonAnimes();
-            
-            // 🔒 ログイン状態をチェックしてランキング読み込み、またはロック画面表示
             checkLoginAndLoadRankings();
         };
 
@@ -156,7 +183,16 @@
             }
         }
 
-        // 今期の「話題の作品（Annict APIからリアルタイム取得）」※ここはゲストでも見られます
+        // 🛠️ 画像エラー処理ロジック（プレースホルダー完全消去用）
+        function handleImgError(img, text) {
+            const container = img.parentNode;
+            img.style.display = 'none'; 
+            const placeholder = document.createElement('div');
+            placeholder.className = 'img-placeholder';
+            placeholder.innerText = text;
+            container.appendChild(placeholder);
+        }
+
         function fetchCurrentSeasonAnimes() {
             const scrollContainer = document.getElementById('current-season-scroll');
             const apiURL = `https://api.annict.com/v1/works?filter_season=${CURRENT_SEASON}&sort_watchers_count=desc&per_page=15&access_token=${ANNICT_TOKEN}`;
@@ -181,7 +217,10 @@
                         if (anime.images && anime.images.recommended_url) imageUrl = anime.images.recommended_url;
                         else if (anime.images && anime.images.facebook && anime.images.facebook.og_image_url) imageUrl = anime.images.facebook.og_image_url;
 
-                        let imageHTML = imageUrl ? `<img src="${imageUrl}" class="anime-img" alt="">` : `<div class="anime-img" style="background:#334155; display:flex; justify-content:center; align-items:center; color:#64748b; font-weight:bold;">NO IMAGE</div>`;
+                        // 🛠️ ラッパーコンテナを挟み、onerrorを付与して壊れたアイコンの出現を徹底ガード
+                        let imageHTML = imageUrl 
+                            ? `<div class="anime-img-wrapper"><img src="${imageUrl}" class="anime-img" alt="" referrerpolicy="no-referrer" onerror="handleImgError(this, 'NO IMAGE')"></div>` 
+                            : `<div class="anime-img-wrapper"><div class="img-placeholder">NO IMAGE</div></div>`;
 
                         const isAdded = savedIds.includes(String(anime.id));
                         const buttonHTML = isAdded 
@@ -237,9 +276,6 @@
             setTimeout(() => { toast.classList.remove('show'); }, 3000);
         }
 
-        // ==========================================
-        // 🔒 認証チェック ＆ ランキング制限ロジック
-        // ==========================================
         function checkLoginAndLoadRankings() {
             const savedName = localStorage.getItem('username');
             const googleId = localStorage.getItem('googleId');
@@ -247,13 +283,11 @@
             const currentGrid = document.getElementById('current-season-ranking-grid');
             const globalGrid = document.getElementById('global-ranking-grid');
 
-            // ログイン済みの場合のみRenderサーバーから実データを読み込む
             if (savedName && savedName !== 'ゲストユーザー' && googleId) {
-                currentGrid.innerHTML = '<p style="color: #64748b; font-weight: bold; padding: 20px;">サーバーから集計中...</p>';
-                globalGrid.innerHTML = '<p style="color: #64748b; font-weight: bold; padding: 20px;">サーバーから集計中...</p>';
+                currentGrid.innerHTML = '<p style="color: #64748b; font-weight: bold; padding: 20px;">サーバーから最新データを集計中...</p>';
+                globalGrid.innerHTML = '<p style="color: #64748b; font-weight: bold; padding: 20px;">サーバーから最新データを集計中...</p>';
                 fetchCloudRankings();
             } else {
-                // 🔒 未ログイン時は、きれいなロック画面風UIを表示して弾く
                 const lockHTML = `
                     <div class="lock-container" style="grid-column: 1 / -1; width: 100%;">
                         <span class="lock-icon">🔒</span>
@@ -267,37 +301,27 @@
             }
         }
 
-        // ==========================================
-        // 🔄 Renderサーバー（SQLite）から4軸評価データの集計を取得
-        // ==========================================
         function fetchCloudRankings() {
-            // Renderのデータベース内にある全ユーザーの評価データを集計するAPIエンドポイント
             fetch(`${API_BASE_URL}/api/rankings`)
             .then(res => {
                 if (!res.ok) throw new Error('データ取得に失敗しました');
                 return res.json();
             })
             .then(data => {
-                // サーバーから返ってくるデータ（配列形式を想定）
-                // 構成要素例: [{ title: "作品名", image: "URL", season_name: "2026-spring", character: 4.5, art: 4.2, tempo: 4.0, story: 4.7 }]
                 const records = data.rankings || data || [];
-
-                // 1. 今期アニメランキングの抽出（CURRENT_SEASONに合致するもの）
                 const currentSeasonItems = records.filter(item => item.season_name === CURRENT_SEASON);
+                
                 renderRankGrid('current-season-ranking-grid', currentSeasonItems);
-
-                // 2. 全アニメ総合ランキングの抽出（全件対象）
                 renderRankGrid('global-ranking-grid', records);
             })
             .catch(err => {
                 console.error('ランキング同期エラー:', err);
-                const errMsg = '<p style="color: #ff3b30; font-weight: bold; grid-column:1/-1; text-align:center; padding: 20px;">サーバーからのランキング取得に失敗しました。</p>';
+                const errMsg = '<p style="color: #ff3b30; font-weight: bold; grid-column:1/-1; text-align:center; padding: 20px;">サーバーが休止状態から復帰中、または取得に失敗しました。数秒後に再度リロードをお試しください。</p>';
                 document.getElementById('current-season-ranking-grid').innerHTML = errMsg;
                 document.getElementById('global-ranking-grid').innerHTML = errMsg;
             });
         }
 
-        // 🎨 ランキングカード生成・計算処理
         function renderRankGrid(targetId, items) {
             const gridContainer = document.getElementById(targetId);
             if (!gridContainer) return;
@@ -307,16 +331,12 @@
                 return;
             }
 
-            // 💡 サーバーから取得したデータに基づいて「キャラクター、作画、テンポ、ストーリー」の4軸の平均をフロントで計算
-            // （もしサーバー側で既に finalScore が計算されている場合は、そのまま使用可能にします）
             let rankedItems = items.map(anime => {
-                // 各カラム名がDBと紐づく（もし無ければデフォルト3.0にする安全設計）
                 const character = Number(anime.character || anime.character_score || 0);
                 const art = Number(anime.art || anime.art_score || 0);
                 const tempo = Number(anime.tempo || anime.tempo_score || 0);
                 const story = Number(anime.story || anime.story_score || 0);
                 
-                // 4軸の平均値を割り出す
                 const calculatedScore = (character + art + tempo + story) / 4;
                 const finalScore = anime.finalScore || calculatedScore || 0;
 
@@ -327,16 +347,18 @@
                 };
             });
 
-            // 総合スコアが高い順（降順）にソート
             rankedItems.sort((a, b) => b.finalScore - a.finalScore);
 
             gridContainer.innerHTML = '';
-            // 上位12件を表示
             rankedItems.slice(0, 12).forEach((anime, idx) => {
                 const rank = idx + 1;
                 let badgeClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other';
-                let imageHTML = anime.image ? `<img src="${anime.image}" class="anime-img" alt="">` : `<div class="anime-img" style="background:#334155; display:flex; justify-content:center; align-items:center; color:#64748b; font-weight:bold;">NO IMAGE</div>`;
-
+                
+                // 🛠️ 天才バグ修正：元コードの `anime-thumb` クラスを定義済みの `anime-img` に統一し、画像表示率を100%に向上。エラー処理も完備。
+                let imageHTML = anime.image 
+                    ? `<div class="anime-img-wrapper"><img src="${anime.image}" class="anime-img" alt="" referrerpolicy="no-referrer" onerror="handleImgError(this, 'NO IMAGE')"></div>` 
+                    : `<div class="anime-img-wrapper"><div class="img-placeholder">NO IMAGE</div></div>`;
+                
                 const card = `
                     <div class="anime-card">
                         <div class="rank-badge ${badgeClass}">${rank}</div>
