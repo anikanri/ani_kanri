@@ -177,7 +177,32 @@ app.get('/api/ratings/:googleId', (req, res) => {
         res.json({ status: 'success', ratings: rows });
     });
 });
+// 🛠️ 【新設】全ユーザーの評価を集計して総合ランキングを作る窓口
+app.get('/api/rankings', (req, res) => {
+    // 💡 各アニメごとに「4軸の平均点のさらに平均」を算出して、高い順に並べ替えるクエリ
+    const query = `
+        SELECT 
+            anime_id as id,
+            anime_title as title,
+            anime_image as image,
+            season_name,
+            COUNT(google_id) as review_count,
+            AVG((character + art + tempo + story) / 4.0) as average_score
+        FROM anime_ratings
+        GROUP BY anime_id
+        ORDER BY average_score DESC
+        LIMIT 10
+    `;
 
+    db.all(query, [], (err, rows) => {
+        if (err) {
+            console.error('ランキング集計失敗:', err.message);
+            return res.status(500).json({ error: 'ランキングの集計に失敗しました' });
+        }
+        // フロント側が使いやすいように success と records(または rankings) で返す
+        res.json({ status: 'success', records: rows, rankings: rows });
+    });
+});
 
 // サーバー起動
 app.listen(3000, () => {
