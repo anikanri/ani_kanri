@@ -18,7 +18,7 @@ const db = new sqlite3.Database('./database.db', (err) => {
     else console.log('💾 SQLite データベースに接続しました。');
 });
 
-// 🗂️ テーブル（表）を作成する
+// 🗂️ テーブル（表）を作成・管理する
 db.serialize(() => {
     // 1. ユーザー情報テーブル
     db.run(`
@@ -30,7 +30,7 @@ db.serialize(() => {
         )
     `);
 
-    // 2. アニメ記録テーブル
+    // 2. アニメ視聴記録テーブル
     db.run(`
         CREATE TABLE IF NOT EXISTS anime_records (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -38,6 +38,26 @@ db.serialize(() => {
             anime_title TEXT,
             episode TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    `);
+
+    // 3. ⭐ 【新設】アニメ作品評価・感想テーブル
+    // ユーザーごとに1つのアニメに対して1つの評価レコードを持つよう設計しています
+    db.run(`
+        CREATE TABLE IF NOT EXISTS anime_ratings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            google_id TEXT,
+            anime_id TEXT,
+            anime_title TEXT,
+            anime_image TEXT,
+            season_name TEXT,
+            character INTEGER DEFAULT 0,
+            art INTEGER DEFAULT 0,
+            tempo INTEGER DEFAULT 0,
+            story INTEGER DEFAULT 0,
+            comment TEXT,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(google_id, anime_id)
         )
     `);
 });
@@ -62,7 +82,6 @@ app.post('/api/auth/google', async (req, res) => {
 
             if (row) {
                 console.log(`[サーバー] 既存ユーザーログイン: ${row.name}`);
-                // フロントで使いやすいように、google_id も一緒に返してあげる
                 res.json({ status: 'success', googleId: googleUserId, username: row.name, avatar: row.avatar });
             } else {
                 db.run(`INSERT INTO users (google_id, name, avatar) VALUES (?, ?, ?)`, [googleUserId, name, picture], function(err) {
@@ -77,7 +96,7 @@ app.post('/api/auth/google', async (req, res) => {
     }
 });
 
-// 🛠️ 2. 【新設】アニメの視聴記録を保存する窓口
+// 🛠️ 2. アニメの視聴記録を保存する窓口
 app.post('/api/records', (req, res) => {
     const { googleId, animeTitle, episode } = req.body;
 
@@ -96,7 +115,7 @@ app.post('/api/records', (req, res) => {
     });
 });
 
-// 🛠️ 3. 【新設】そのユーザーの過去の視聴記録をすべて取得する窓口
+// 🛠️ 3. そのユーザーの過去の視聴記録をすべて取得する窓口
 app.get('/api/records/:googleId', (req, res) => {
     const { googleId } = req.params;
 
@@ -109,6 +128,56 @@ app.get('/api/records/:googleId', (req, res) => {
         res.json({ status: 'success', records: rows });
     });
 });
+
+
+// =================================================================
+// ⭐ 【新設窓口】作品評価・感想の同期システム
+// =================================================================
+
+// 🛠️ 4. 作品への評価・感想を「保存（追加または上書き）」する窓口
+app.post('/api/ratings', (req, res) => {
+    const { 
+        googleId, animeId, animeTitle, animeImage, seasonName,
+        character, art, tempo, story, comment 
+    } = req.body;
+
+    if (!googleId || !animeId) {
+        return res.status(400).json({ error: 'ユーザーIDまたはアニメIDが不足しています' });
+    }
+
+    // 💡 すでに評価が存在すれば新しいデータで上書き（REPLACE）、なければ新規挿入
+    const query = `
+        INSERT OR REPLACE INTO anime_ratings 
+        (google_id, anime_id, anime_title, anime_image, season_name, character, art, tempo, story, comment, updated_at) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    `;
+
+    const params = [googleId, String(animeId), animeTitle, animeImage, seasonName, character, art, tempo, story, comment];
+
+    db.run(query, params, function(err) {
+        if (err) {
+            console.error('評価のDB保存失敗:', err.message);
+            return res.status(500).json({ error: 'サーバー側での評価保存に失敗しました' });
+        }
+        console.log(`[サーバー] 評価を更新しました: ${animeTitle} (User: ${googleId})`);
+        res.json({ status: 'success', message: '評価を同期・保存しました！' });
+    });
+});
+
+// 🛠️ 5. そのユーザーが付けたすべての「評価・感想リスト」を取得する窓口
+app.get('/api/ratings/:googleId', (req, res) => {
+    const { googleId } = req.params;
+
+    const query = `SELECT * FROM anime_ratings WHERE google_id = ? ORDER BY updated_at DESC`;
+    db.all(query, [googleId], (err, rows) => {
+        if (err) {
+            console.error('評価データの取得失敗:', err.message);
+            return res.status(500).json({ error: '評価データの取得に失敗しました' });
+        }
+        res.json({ status: 'success', ratings: rows });
+    });
+});
+
 
 // サーバー起動
 app.listen(3000, () => {
