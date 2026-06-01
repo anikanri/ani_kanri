@@ -30,7 +30,7 @@
         .my-search-box { padding: 10px 18px; font-size: 14px; border: 2px solid #e2e8f0; border-radius: 20px; outline: none; width: 100%; max-width: 300px; transition: 0.2s; box-sizing: border-box; }
         .my-search-box:focus { border-color: #ff3b30; background: white; }
 
-        /* 🎬 レイアウト調整：スマホは1列、PCは2列（崩れ防止に350pxへ変更） */
+        /* 🎬 レイアウト調整：PCは2列、スマホは1列 */
         .rating-layout { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 24px; }
         .rating-card { background: white; border-radius: 20px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; display: flex; gap: 20px; transition: all 0.2s; position: relative; box-sizing: border-box; }
         .anime-thumb { width: 110px; aspect-ratio: 3/4; object-fit: cover; border-radius: 12px; flex-shrink: 0; }
@@ -40,12 +40,10 @@
         .rating-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
         .rating-label { font-size: 13px; font-weight: 700; color: #475569; }
         
-        /* ⭐ 星評価まわりの強化 */
+        /* ⭐ 星評価 */
         .stars-container { display: flex; gap: 4px; direction: ltr; }
         .star { font-size: 20px; color: #cbd5e1; cursor: pointer; transition: transform 0.1s, color 0.1s; user-select: none; }
         .star.active { color: #ffcc00; }
-        
-        /* 💡 JSホバークラス用スタイル */
         .star.hover-active { color: #ffe066; }
 
         .comment-box { width: 100%; min-height: 60px; margin-top: 12px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-family: inherit; resize: vertical; box-sizing: border-box; outline: none; transition: 0.2s; background: #f8fafc; }
@@ -68,7 +66,7 @@
             .anime-thumb { width: 85px; }
             .anime-title { font-size: 14px; margin-bottom: 10px; }
             .star { font-size: 18px; }
-            .total-score-box { justify-content: union; width: 100%; }
+            .total-score-box { justify-content: space-between; width: 100%; }
             .btn-save-rating { width: 100%; text-align: center; }
         }
     </style>
@@ -94,7 +92,7 @@
             <div class="page-header-box">
                 <div>
                     <h2 class="page-title">⭐ 作品評価・感想</h2>
-                    <p style="color: #64748b; margin: 5px 0 0 0; font-size: 13px;">星と感想を入力後、右下の「保存する」ボタンを押して確定してください。</p>
+                    <p id="sync-status-text" style="color: #64748b; margin: 5px 0 0 0; font-size: 13px;">星と感想を入力後、右下の「保存する」ボタンを押して確定してください。</p>
                 </div>
                 <input type="text" id="my-rating-search" class="my-search-box" placeholder="自分のリストから作品を検索...">
             </div>
@@ -104,6 +102,9 @@
     </main>
 
     <script>
+        // 🌐 【最重要】マイページ・ホームと共通のRenderバックエンドURL
+        const API_BASE_URL = "https://ani-kanri.onrender.com";
+
         const ratingGrid = document.getElementById('rating-grid');
         const myRatingSearch = document.getElementById('my-rating-search');
         const axes = ['character', 'art', 'tempo', 'story'];
@@ -113,7 +114,8 @@
         let tempRatings = {};
 
         window.onload = function() {
-            loadRatingPage();
+            // サーバー側から最新の評価データをあらかじめ引いて同期させる
+            loadCloudRatingsBeforeRender();
             
             myRatingSearch.addEventListener('input', () => {
                 const query = myRatingSearch.value.toLowerCase().trim();
@@ -128,6 +130,50 @@
                 });
             });
         };
+
+        // 🔄 【追加】表示を構築する前に、サーバーから最新の評価を引っ張って同期する関数
+        function loadCloudRatingsBeforeRender() {
+            const googleId = localStorage.getItem('googleId');
+            const statusText = document.getElementById('sync-status-text');
+
+            // ログイン中の場合のみサーバーからデータを取得
+            if (googleId) {
+                statusText.innerText = "🔄 サーバーから最新の評価データを同期中...";
+                fetch(`${API_BASE_URL}/api/ratings/${googleId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success' && data.ratings) {
+                        // ローカルの既存データを一度読み込み、サーバー側のデータで上書きマージする
+                        let localRatings = JSON.parse(localStorage.getItem('animeRatings')) || {};
+                        
+                        // サーバーの配列データをオブジェクト構造に変形して格納
+                        data.ratings.forEach(r => {
+                            localRatings[r.anime_id] = {
+                                character: Number(r.character),
+                                art: Number(r.art),
+                                tempo: Number(r.tempo),
+                                story: Number(r.story),
+                                comment: r.comment || ''
+                            };
+                        });
+                        
+                        localStorage.setItem('animeRatings', JSON.stringify(localRatings));
+                        statusText.innerHTML = "🟢 サーバーとの同期が完了しました。";
+                    }
+                    // 同期処理が終わったら画面にカードを描画する
+                    loadRatingPage();
+                })
+                .catch(err => {
+                    console.error('評価データの同期失敗:', err);
+                    statusText.innerHTML = "⚠️ サーバーデータ同期オフライン（ローカルデータで動作中）";
+                    loadRatingPage();
+                });
+            } else {
+                // ゲスト状態なら直接ローカルデータで描画
+                statusText.innerHTML = "💡 ゲストモード：データはブラウザに一時保存されます。";
+                loadRatingPage();
+            }
+        }
 
         function loadRatingPage() {
             watchedList = JSON.parse(localStorage.getItem('watchedAnimes')) || [];
@@ -146,7 +192,8 @@
                 const animeRate = ratings[anime.id] || { character: 0, art: 0, tempo: 0, story: 0, comment: '' };
                 tempRatings[anime.id] = { ...animeRate };
 
-                const totalStars = ((animeRate.character + animeRate.art + animeRate.tempo + animeRate.story) / 4).toFixed(1);
+                // 4軸スコアから総合値の初期算出
+                const totalStars = ((Number(animeRate.character || 0) + Number(animeRate.art || 0) + Number(animeRate.tempo || 0) + Number(animeRate.story || 0)) / 4).toFixed(1);
                 const savedComment = animeRate.comment || '';
 
                 let rowsHTML = '';
@@ -236,7 +283,7 @@
                 else { s.classList.remove('active'); }
             });
 
-            const newTotal = ((temp.character + temp.art + temp.tempo + temp.story) / 4).toFixed(1);
+            const newTotal = ((Number(temp.character) + Number(temp.art) + Number(temp.tempo) + Number(temp.story)) / 4).toFixed(1);
             document.getElementById(`total-val-${animeId}`).textContent = `⭐ 総合: ${newTotal}`;
 
             const saveBtn = document.getElementById(`save-btn-${animeId}`);
@@ -244,29 +291,91 @@
             saveBtn.classList.remove('saved');
         }
 
+        // =========================================================
+        // 💾 【最重要修正】評価データの決定＆サーバーへのデータ送信処理
+        // =========================================================
         function commitRating(animeId) {
             let ratings = JSON.parse(localStorage.getItem('animeRatings')) || {};
             const commentElement = document.getElementById(`comment-${animeId}`);
             const textComment = commentElement ? commentElement.value : '';
+
+            // 対象アニメのオブジェクト情報を特定する
+            const animeInfo = watchedList.find(item => String(item.id) === String(animeId));
+            const animeTitle = animeInfo ? animeInfo.title : '不明な作品';
+            const animeImage = animeInfo ? animeInfo.image : '';
+            const seasonName = animeInfo ? (animeInfo.season_name || '2026-spring') : '2026-spring';
 
             ratings[animeId] = {
                 ...tempRatings[animeId],
                 comment: textComment
             };
 
+            // 1. ローカル環境（localStorage）への保存
             localStorage.setItem('animeRatings', JSON.stringify(ratings));
 
             const saveBtn = document.getElementById(`save-btn-${animeId}`);
             if (saveBtn) {
-                saveBtn.textContent = "✓ 保存されました";
-                saveBtn.classList.add('saved');
-                
-                setTimeout(() => {
-                    if(saveBtn.classList.contains('saved')) {
-                        saveBtn.textContent = "保存する";
-                    }
-                }, 2000);
+                saveBtn.textContent = "⏳ 同期中...";
+                saveBtn.style.pointerEvents = "none";
             }
+
+            // 2. ログイン中の場合、バックエンドサーバーのSQLiteデータベースに送信（POST）
+            const googleId = localStorage.getItem('googleId');
+            
+            if (googleId) {
+                const payload = {
+                    googleId: googleId,
+                    animeId: String(animeId),
+                    animeTitle: animeTitle,
+                    animeImage: animeImage,
+                    seasonName: seasonName,
+                    character: Number(tempRatings[animeId].character || 0),
+                    art: Number(tempRatings[animeId].art || 0),
+                    tempo: Number(tempRatings[animeId].tempo || 0),
+                    story: Number(tempRatings[animeId].story || 0),
+                    comment: textComment
+                };
+
+                fetch(`${API_BASE_URL}/api/ratings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error('サーバー応答エラー');
+                    return res.json();
+                })
+                .then(data => {
+                    if (data.status === 'success') {
+                        showSavedSuccessStyle(saveBtn);
+                    }
+                })
+                .catch(err => {
+                    console.error('サーバーへの評価送信エラー:', err);
+                    if (saveBtn) {
+                        saveBtn.textContent = "⚠️ ローカルのみ保存";
+                        saveBtn.style.pointerEvents = "auto";
+                        setTimeout(() => { saveBtn.textContent = "保存する"; }, 2500);
+                    }
+                });
+            } else {
+                // 未ログイン（ゲスト）の場合は即成功表示
+                showSavedSuccessStyle(saveBtn);
+            }
+        }
+
+        // 保存成功時の共通アニメーションUI処理
+        function showSavedSuccessStyle(saveBtn) {
+            if (!saveBtn) return;
+            saveBtn.style.pointerEvents = "auto";
+            saveBtn.textContent = "✓ 保存されました";
+            saveBtn.classList.add('saved');
+            
+            setTimeout(() => {
+                if(saveBtn.classList.contains('saved')) {
+                    saveBtn.textContent = "保存する";
+                }
+            }, 2000);
         }
     </script>
 </body>
