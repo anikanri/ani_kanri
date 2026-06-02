@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght=100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./css/style.css">
     <title>作品評価 - アニ管理</title>
     <style>
@@ -14,7 +14,7 @@
             height: 100%; 
             margin: 0; 
             padding: 0;
-            overflow-x: hidden; /* 横スクロールを強制禁止 */
+            overflow-x: hidden; 
             width: 100%;
         }
         body { 
@@ -27,7 +27,7 @@
         main { flex: 1; padding: 120px 0 60px; width: 100%; box-sizing: border-box; }
         .container { max-width: 1000px; margin: 0 auto; width: 90%; box-sizing: border-box; }
         
-        /* 📱 統一ヘッダーの横漏れを修正 */
+        /* 💻 統一ヘッダー */
         header { 
             background: rgba(15, 23, 42, 0.9); 
             backdrop-filter: blur(8px); 
@@ -46,7 +46,7 @@
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            box-sizing: border-box; /* パディングで幅が広がらないように */
+            box-sizing: border-box; 
         }
         .logo { font-weight: 900; font-size: 24px; color: white; letter-spacing: -0.5px; text-decoration: none; flex-shrink: 0; }
         .menu { display: flex; gap: 12px; list-style: none; margin: 0; padding: 0; align-items: center; }
@@ -61,14 +61,14 @@
         .my-search-box { padding: 10px 18px; font-size: 14px; border: 2px solid #e2e8f0; border-radius: 20px; outline: none; width: 100%; max-width: 300px; transition: 0.2s; box-sizing: border-box; }
         .my-search-box:focus { border-color: #ff3b30; background: white; }
 
-        /* 🎬 レイアウト：スマホ時に突き破らないよう最小幅を280pxに変更 */
+        /* 🎬 レイアウト */
         .rating-layout { 
             display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
             gap: 24px; 
             width: 100%;
             box-sizing: border-box;
-            }
+        }
         .rating-card { 
             background: white; 
             border-radius: 20px; 
@@ -76,27 +76,28 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
             border: 1px solid #e2e8f0; 
             display: flex; 
+            flex-direction: row; 
             gap: 20px; 
             transition: all 0.2s; 
             position: relative; 
             box-sizing: border-box; 
-            width: 100%; /* 横幅いっぱいにフィットさせる */
-            min-width: 0; /* 文字溢れでのカード拡張を防ぐ */
+            width: 100%; 
+            min-width: 0; 
         }
         
-        /* 🖼️ 画像表示・NO IMAGE表示の統合コンテナ設定 */
-        .thumb-wrapper { width: 110px; aspect-ratio: 3/4; flex-shrink: 0; position: relative; }
+        /* 🖼️ 画像表示・NO IMAGE表示 */
+        .thumb-wrapper { width: 110px; aspect-ratio: 3/4; flex-shrink: 0; position: relative; background: #cbd5e1; border-radius: 12px; overflow: hidden; }
         .anime-thumb { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; display: block; }
         .no-image-placeholder { width: 100%; height: 100%; background: #cbd5e1; display: flex; justify-content: center; align-items: center; font-size: 11px; color: #475569; font-weight: bold; text-align: center; border-radius: 12px; position: absolute; top: 0; left: 0; box-sizing: border-box; padding: 4px; }
 
-        .rating-info { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+        .rating-info { flex: 1; display: flex; flex-direction: column; min-width: 0; width: 100%; }
         .anime-title { font-weight: 800; font-size: 16px; margin: 0 0 15px 0; color: #0f172a; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
-        /* ⭐ 星評価の行（スマホでガタつかないための絶対防御設定） */
-        .rating-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 8px; width: 100%; }
+        /* ⭐ 星評価の行 */
+        .rating-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 8px; width: 100%; box-sizing: border-box; }
         .rating-label { font-size: 13px; font-weight: 700; color: #475569; flex-shrink: 0; white-space: nowrap; }
         
-        .stars-container { display: flex; gap: 4px; direction: ltr; flex-shrink: 0; width: 116px; justify-content: flex-end; }
+        .stars-container { display: flex; gap: 4px; direction: ltr; flex-shrink: 0; justify-content: flex-end; }
         .star { font-size: 20px; color: #cbd5e1; cursor: pointer; transition: transform 0.1s, color 0.1s; user-select: none; flex-shrink: 0; width: 20px; text-align: center; display: inline-block; }
         .star.active { color: #ffcc00; }
         .star.hover-active { color: #ffe066; }
@@ -104,20 +105,18 @@
         .comment-box { width: 100%; min-height: 60px; margin-top: 12px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-family: inherit; resize: vertical; box-sizing: border-box; outline: none; transition: 0.2s; background: #f8fafc; }
         .comment-box:focus { border-color: #ff3b30; background: white; }
 
-        .total-score-box { margin-top: 15px; padding-top: 12px; border-top: 1px dashed #e2e8f0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
-        .total-label { font-size: 13px; font-weight: 800; color: #64748b; }
-        .total-stars { font-size: 14px; color: #ffcc00; font-weight: bold; background: #0f172a; padding: 6px 12px; border-radius: 12px; }
+        .total-score-box { margin-top: 15px; padding-top: 12px; border-top: 1px dashed #e2e8f0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; width: 100%; box-sizing: border-box; }
+        .total-stars { font-size: 14px; color: #ffcc00; font-weight: bold; background: #0f172a; padding: 6px 12px; border-radius: 12px; white-space: nowrap; }
         
-        .btn-save-rating { padding: 10px 20px; border: none; border-radius: 20px; background: linear-gradient(135deg, #ff3b30, #ff2d55); color: white; font-weight: bold; font-size: 13px; cursor: pointer; box-shadow: 0 4px 10px rgba(255,59,48,0.2); transition: all 0.2s; text-align: center; }
+        .btn-save-rating { padding: 10px 20px; border: none; border-radius: 20px; background: linear-gradient(135deg, #ff3b30, #ff2d55); color: white; font-weight: bold; font-size: 13px; cursor: pointer; box-shadow: 0 4px 10px rgba(255,59,48,0.2); transition: all 0.2s; text-align: center; white-space: nowrap; }
         .btn-save-rating:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(255,59,48,0.35); }
         .btn-save-rating.saved { background: #059669; box-shadow: 0 4px 10px rgba(5,150,105,0.2); }
 
-        /* 📱 スマホ最適化レスポンシブ（2行グニャー現象と星ブレを完全粉砕） */
-        @media (max-width: 600px) {
-            main { padding-top: 135px; } /* 上下2段ヘッダー用に余白を拡張 */
+        /* 📱 スマホ・タブレット用レスポンシブ */
+        @media (max-width: 768px) {
+            main { padding-top: 135px; } 
             .container { width: 92%; } 
             
-            /* ヘッダーの中央上下2段組みへの美しいトランスフォーム */
             .row { 
                 flex-direction: column; 
                 gap: 10px; 
@@ -133,33 +132,29 @@
             .my-search-box { max-width: 100%; } 
 
             .rating-layout { grid-template-columns: 1fr; gap: 16px; }
+            .rating-card { flex-direction: column; padding: 16px; gap: 16px; align-items: center; }
             
-            /* カード内の要素配置スマホ版 */
-            .rating-card { padding: 14px; gap: 12px; align-items: flex-start; }
-            .thumb-wrapper { width: 80px; }
-            .anime-title { font-size: 14px; margin-bottom: 8px; }
+            .thumb-wrapper { width: 140px; }
+            .anime-title { font-size: 15px; margin-bottom: 12px; text-align: center; white-space: normal; overflow: visible; text-overflow: clip; }
             
-            /* 星と文字の幅を完全に固定してピタッと止める設定 */
-            .rating-row { margin-bottom: 5px; gap: 4px; }
-            .rating-label { font-size: 12px; }
-            .stars-container { width: 96px; gap: 2px; }
-            .star { font-size: 16px; width: 16px; }
+            .rating-row { margin-bottom: 6px; gap: 8px; }
+            .rating-label { font-size: 13px; }
+            .star { font-size: 18px; width: 18px; }
             
-            .comment-box { margin-top: 8px; font-size: 12px; }
-            .total-score-box { justify-content: space-between; width: 100%; margin-top: 10px; padding-top: 10px; }
-            .total-stars { font-size: 12px; padding: 5px 10px; }
+            .comment-box { margin-top: 10px; font-size: 13px; }
+            .total-score-box { justify-content: space-between; width: 100%; margin-top: 12px; padding-top: 12px; }
+            .total-stars { font-size: 13px; padding: 5px 12px; }
             .btn-save-rating { width: 100%; box-sizing: border-box; font-size: 13px; padding: 12px; } 
         }
 
-        /* 🚨 超極小スマホ（iPhone SEなど）用の完全護衛 */
+        /* 🚨 超極小スマホ用 */
         @media (max-width: 375px) {
             main { padding-top: 130px; }
             .row { padding: 8px 5px 10px; gap: 8px; }
             .menu a { padding: 5px 7px; font-size: 11px; }
-            .rating-card { padding: 10px; gap: 10px; }
-            .thumb-wrapper { width: 70px; }
-            .stars-container { width: 86px; gap: 1px; }
-            .star { font-size: 14px; width: 14px; }
+            .rating-card { padding: 12px; gap: 12px; }
+            .thumb-wrapper { width: 110px; }
+            .star { font-size: 16px; width: 16px; }
         }
     </style>
 </head>
@@ -194,8 +189,7 @@
     </main>
 
     <script>
-        // 🌐 【最重要】マイページ・ホームと共通のRenderバックエンドURL
-        const API_BASE_URL = "https://ani-kanri.onrender.com";
+      const API_BASE_URL = "https://ani-kanri.onrender.com";
 
         const ratingGrid = document.getElementById('rating-grid');
         const myRatingSearch = document.getElementById('my-rating-search');
@@ -214,7 +208,7 @@
                     const card = document.getElementById(`card-${anime.id}`);
                     if (!card) return;
                     if (anime.title.toLowerCase().includes(query)) {
-                        card.style.display = 'flex';
+                        card.style.display = '';
                     } else {
                         card.style.setProperty('display', 'none', 'important');
                     }
@@ -233,17 +227,80 @@
                 .then(data => {
                     if (data.status === 'success' && data.ratings) {
                         let localRatings = JSON.parse(localStorage.getItem('animeRatings')) || {};
+                        let localWatched = JSON.parse(localStorage.getItem('watchedAnimes')) || [];
+                        let isNewAnimeAdded = false;
+
                         data.ratings.forEach(r => {
+                            // 🛑【重要】タイトルが「不明」または空文字のデータは、処理を完全にスキップ（除外）
+                            const animeTitle = r.title || r.animeTitle || '不明な作品';
+                            if (!r.anime_id || animeTitle.includes('不明') || animeTitle.trim() === '') {
+                                return; 
+                            }
+
+                            const charVal = Number(r.character || 0);
+                            const artVal = Number(r.art || 0);
+                            const tempoVal = Number(r.tempo || 0);
+                            const storyVal = Number(r.story || 0);
+                            const totalCalc = ((charVal + artVal + tempoVal + storyVal) / 4).toFixed(1);
+
+                            const targetImage = r.image || r.animeImage || '';
+
                             localRatings[r.anime_id] = {
-                                character: Number(r.character),
-                                art: Number(r.art),
-                                tempo: Number(r.tempo),
-                                story: Number(r.story),
+                                character: charVal,
+                                art: artVal,
+                                tempo: tempoVal,
+                                story: storyVal,
+                                total: Number(totalCalc),
                                 comment: r.comment || ''
                             };
+
+                            const animeIdStr = String(r.anime_id);
+                            const alreadyInWatched = localWatched.some(item => String(item.id) === animeIdStr);
+
+                            if (!alreadyInWatched) {
+                                const seasonName = r.season_name || r.seasonName || '2026-spring';
+
+                                localWatched.push({
+                                    id: animeIdStr,
+                                    title: animeTitle,
+                                    image: targetImage,
+                                    season_name: seasonName
+                                });
+                                isNewAnimeAdded = true;
+
+                                const syncPayload = {
+                                    googleId: googleId,
+                                    animeId: animeIdStr,
+                                    anime_id: animeIdStr,
+                                    title: animeTitle,
+                                    image: targetImage,
+                                    season_name: seasonName,
+                                    episode: 1
+                                };
+
+                                // クリーンなデータ（判明している作品）のみサーバーへPOST同期する
+                                fetch(`${API_BASE_URL}/api/records`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(syncPayload)
+                                }).catch(e => console.error("バックグラウンド同期失敗:", e));
+                            } else {
+                                const idx = localWatched.findIndex(item => String(item.id) === animeIdStr);
+                                if (idx !== -1 && (!localWatched[idx].image || localWatched[idx].image.trim() === '')) {
+                                    localWatched[idx].image = targetImage;
+                                    isNewAnimeAdded = true;
+                                }
+                            }
                         });
+
                         localStorage.setItem('animeRatings', JSON.stringify(localRatings));
-                        statusText.innerHTML = "🟢 サーバーとの同期が完了しました。";
+                        if (isNewAnimeAdded) {
+                            // 🛑【重要】ローカルストレージに保存する前に、念のため「不明」な残骸が混ざっていたら除去
+                            localWatched = localWatched.filter(item => item.title && !item.title.includes('不明'));
+                            localStorage.setItem('watchedAnimes', JSON.stringify(localWatched));
+                        }
+
+                        statusText.innerHTML = "🟢 サーバーとの同期・マイページへのデータ復旧が完了しました！";
                     }
                     loadRatingPage();
                 })
@@ -257,9 +314,12 @@
                 loadRatingPage();
             }
         }
-
+        
         function loadRatingPage() {
-            watchedList = JSON.parse(localStorage.getItem('watchedAnimes')) || [];
+            // 🛑【重要】読み込み時に「不明」な作品を除外してクリーンにする
+            let rawWatched = JSON.parse(localStorage.getItem('watchedAnimes')) || [];
+            watchedList = rawWatched.filter(item => item.title && !item.title.includes('不明'));
+            
             const ratings = JSON.parse(localStorage.getItem('animeRatings')) || {};
 
             if (watchedList.length === 0) {
@@ -270,12 +330,11 @@
             ratingGrid.innerHTML = '';
 
             watchedList.forEach(anime => {
-                // 🖼️ 画像の読み込み不具合・URL破損時にも安全にNO IMAGEへ移行させる統合ラッパー構造
                 let imageHTML = '';
                 if (anime.image && anime.image.trim() !== '') {
                     imageHTML = `
                         <div class="thumb-wrapper">
-                            <img src="${anime.image}" class="anime-thumb" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <img src="${anime.image}" class="anime-thumb" alt="" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
                             <div class="no-image-placeholder" style="display: none;">NO IMAGE</div>
                         </div>
                     `;
@@ -326,6 +385,7 @@
                 ratingGrid.insertAdjacentHTML('beforeend', cardHTML);
             });
 
+            // 星のインタラクション
             document.querySelectorAll('.stars-container').forEach(container => {
                 const stars = container.querySelectorAll('.star');
                 stars.forEach(star => {
@@ -351,6 +411,7 @@
                 });
             });
 
+            // 保存ボタン
             document.querySelectorAll('.btn-save-rating').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const animeId = e.currentTarget.getAttribute('data-anime');
@@ -386,11 +447,22 @@
 
             const animeInfo = watchedList.find(item => String(item.id) === String(animeId));
             const animeTitle = animeInfo ? animeInfo.title : '不明な作品';
+            
+            // 🛑 ここでも念のためガード（「不明な作品」は送信させない）
+            if (animeTitle.includes('不明')) return;
+
             const animeImage = animeInfo ? animeInfo.image : '';
             const seasonName = animeInfo ? (animeInfo.season_name || '2026-spring') : '2026-spring';
 
+            const charScore = Number(tempRatings[animeId].character || 0);
+            const artScore = Number(tempRatings[animeId].art || 0);
+            const tempoScore = Number(tempRatings[animeId].tempo || 0);
+            const storyScore = Number(tempRatings[animeId].story || 0);
+            const computedTotal = ((charScore + artScore + tempoScore + storyScore) / 4).toFixed(1);
+
             ratings[animeId] = {
                 ...tempRatings[animeId],
+                total: Number(computedTotal),
                 comment: textComment
             };
 
@@ -408,14 +480,16 @@
                 const payload = {
                     googleId: googleId,
                     animeId: String(animeId),
-                    animeTitle: animeTitle,
-                    animeImage: animeImage,
-                    seasonName: seasonName,
-                    character: Number(tempRatings[animeId].character || 0),
-                    art: Number(tempRatings[animeId].art || 0),
-                    tempo: Number(tempRatings[animeId].tempo || 0),
-                    story: Number(tempRatings[animeId].story || 0),
-                    comment: textComment
+                    anime_id: String(animeId),
+                    title: animeTitle,
+                    image: animeImage, 
+                    season_name: seasonName,
+                    character: charScore,
+                    art: artScore,
+                    tempo: tempoScore,
+                    story: storyScore,
+                    comment: textComment,
+                    episode: 1
                 };
 
                 fetch(`${API_BASE_URL}/api/ratings`, {
@@ -428,10 +502,21 @@
                     return res.json();
                 })
                 .then(data => {
-                    if (data.status === 'success') { showSavedSuccessStyle(saveBtn); }
+                    if (data.status === 'success') {
+                        return fetch(`${API_BASE_URL}/api/records`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                    }
+                    throw new Error('評価保存ステップで失敗');
+                })
+                .then(res => res.json())
+                .then(recordData => {
+                    showSavedSuccessStyle(saveBtn);
                 })
                 .catch(err => {
-                    console.error('サーバーへの評価送信エラー:', err);
+                    console.error('サーバーへの評価・レコード送信エラー:', err);
                     if (saveBtn) {
                         saveBtn.textContent = "⚠️ ローカルのみ保存";
                         saveBtn.style.pointerEvents = "auto";
