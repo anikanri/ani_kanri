@@ -25,18 +25,15 @@
         .profile-logged-in { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
         .profile-logged-out { display: flex; flex-direction: column; align-items: center; gap: 15px; text-align: center; }
         .profile-left { display: flex; align-items: center; gap: 20px; }
-        
         .avatar-wrapper { position: relative; width: 90px; height: 90px; border-radius: 50%; overflow: hidden; cursor: pointer; border: 3px solid #ffcc00; }
         .user-avatar { width: 100%; height: 100%; object-fit: cover; }
-        .avatar-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); color: white; display: flex; justify-content: center; align-items: center; font-size: 12px; font-weight: bold; opacity: 0; transition: opacity 0.2s ease; }
+        .avatar-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); color: white; display: flex; justify-content: center; align-items: center; font-size: 12px; font-weight: bold; opacity: 0; transition: opacity 0.2s; }
         .avatar-wrapper:hover .avatar-overlay { opacity: 1; }
-        
         .user-name { font-size: 22px; font-weight: 900; margin: 0; }
         .profile-actions { display: flex; gap: 10px; }
         .btn-settings-nav, .btn-logout { padding: 10px 20px; border-radius: 12px; font-weight: 800; text-decoration: none; font-size: 14px; cursor: pointer; border: none; }
         .btn-settings-nav { background: #f1f5f9; color: #334155; }
         .btn-logout { background: #fee2e2; color: #ef4444; }
-
         .login-prompt { font-size: 15px; font-weight: 800; color: #475569; margin: 0; }
         .google-btn-container { min-height: 40px; display: flex; justify-content: center; align-items: center; }
 
@@ -67,14 +64,24 @@
         .card-body { padding: 12px; }
         .watched-title { font-size: 14px; font-weight: 800; margin: 0; color: #0f172a; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 38px; }
         
-        .episode-select, .movie-status-select { width: 100%; padding: 8px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; font-weight: 800; color: #334155; background-color: #f8fafc; margin-bottom: 8px; }
+        /* ★ selectを使った話数UI */
+        .episode-select, .movie-status-select {
+            width: 100%; padding: 10px 12px; border-radius: 10px;
+            border: 1.5px solid #cbd5e1; font-size: 13px; font-weight: 800;
+            color: #334155; background-color: #f8fafc; margin-bottom: 8px;
+            cursor: pointer; appearance: auto;
+            /* スマホでも押しやすいサイズ */
+            min-height: 44px;
+        }
+        .episode-select:focus, .movie-status-select:focus { border-color: #3b82f6; outline: none; }
+
         .btn-item-delete { width: 100%; background: none; border: none; color: #94a3b8; font-size: 12px; font-weight: 800; cursor: pointer; padding: 6px; transition: color 0.2s; }
         .btn-item-delete:hover { color: #ef4444; }
         
         .save-toast { font-size: 11px; color: #10b981; font-weight: 800; text-align: center; margin-bottom: 6px; opacity: 0; transform: translateY(5px); transition: all 0.2s; height: 0; overflow: hidden; }
         .save-toast.show { opacity: 1; transform: translateY(0); height: auto; }
 
-        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
         .custom-modal { background: white; padding: 30px; border-radius: 24px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
         .modal-icon { font-size: 40px; display: block; margin-bottom: 10px; }
@@ -95,20 +102,21 @@
             .profile-actions { width: 100%; justify-content: center; }
             .watched-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
             .watched-title { font-size: 12px; height: 34px; }
+            /* スマホで選択しやすいように余白を確保 */
+            .episode-select, .movie-status-select { font-size: 14px; padding: 12px; }
         }
     </style>
 </head>
 <body>
-
     <header>
-        <div class="row"> 
+        <div class="row">
             <a href="../" class="logo">アニ管理</a>
             <nav>
-                <ul class="menu">      
+                <ul class="menu">
                     <li><a href="../search.html">検索</a></li>
                     <li><a href="../rating.html">評価</a></li>
                     <li><a href="./index.html" class="active">マイページ</a></li>
-                    <li><a href="../my-ranking.html" style="background: linear-gradient(135deg, #ff9500, #ffcc00); color: #0f172a; font-weight:800; border-radius:24px;">🏅 マイランキング</a></li>
+                    <li><a href="../my-ranking.html" style="background:linear-gradient(135deg,#ff9500,#ffcc00);color:#0f172a;font-weight:800;border-radius:24px;">🏅 マイランキング</a></li>
                 </ul>
             </nav>
         </div>
@@ -116,16 +124,14 @@
 
     <main>
         <div class="container">
-            
             <div class="profile-card">
-                <div id="profile-logged-in" class="profile-logged-in" style="display: none;">
+                <div id="profile-logged-in" class="profile-logged-in" style="display:none;">
                     <div class="profile-left">
                         <div class="avatar-wrapper" onclick="triggerAvatarUpload()">
                             <img id="mypage-avatar" src="" alt="アイコン" class="user-avatar">
                             <div class="avatar-overlay"><i class="fa-solid fa-camera"></i> 変更</div>
                         </div>
-                        <input type="file" id="avatar-file-input" accept="image/*" style="display: none;" onchange="handleAvatarSelection(this)">
-                        
+                        <input type="file" id="avatar-file-input" accept="image/*" style="display:none;" onchange="handleAvatarSelection(this)">
                         <h2 id="mypage-username" class="user-name">読み込み中...</h2>
                     </div>
                     <div class="profile-actions">
@@ -133,20 +139,18 @@
                         <button onclick="logout()" class="btn-logout">🚪 ログアウト</button>
                     </div>
                 </div>
-
-                <div id="profile-logged-out" class="profile-logged-out" style="display: none;">
+                <div id="profile-logged-out" class="profile-logged-out" style="display:none;">
                     <p class="login-prompt">🔒 Googleログインするとプロフィールを設定できます</p>
                     <div class="google-btn-container">
                         <div id="g_id_onload"
                              data-client_id="24659980882-a2lftgmt6vn4lriibv65b3bb3be88r8d.apps.googleusercontent.com"
                              data-ux_mode="popup"
                              data-callback="handleCredentialResponse"
-                             data-auto_render="true">
-                        </div>
+                             data-auto_render="true"></div>
                         <div class="g_id_signin" data-type="standard" data-size="large" data-width="250"></div>
                     </div>
                 </div>
-            </div> 
+            </div>
 
             <div class="stats-card">
                 <div class="stats-icon">⏱️</div>
@@ -165,10 +169,8 @@
                         <button class="btn-sort" id="sort-name" onclick="changeSort('name')">🔤 名前（五十音）順</button>
                     </div>
                 </div>
-
                 <div class="watched-grid" id="mypage-watched-list"></div>
             </section>
-
         </div>
     </main>
 
@@ -176,7 +178,7 @@
         <div class="custom-modal">
             <span class="modal-icon">🗑️</span>
             <h4 class="modal-title" id="modal-anime-title">リストから消去</h4>
-            <p class="modal-text">この作品のデータをマイページから完全に消去しますか？<br><span style="color:#ff3b30; font-size:12px;">※この操作は取り消せません。</span></p>
+            <p class="modal-text">この作品のデータをマイページから完全に消去しますか？<br><span style="color:#ff3b30;font-size:12px;">※この操作は取り消せません。</span></p>
             <div class="modal-buttons">
                 <button class="btn-modal btn-modal-cancel" onclick="closeDeleteModal()">キャンセル</button>
                 <button class="btn-modal btn-modal-confirm" id="modal-confirm-trigger">リストから消去</button>
@@ -184,485 +186,399 @@
         </div>
     </div>
 
-<script>
-const API_BASE_URL = "https://ani-kanri.onrender.com";
-const CURRENT_SEASON = '2026-spring'; 
-const ANNICT_TOKEN = 'xM12QcwCJtWXmLP3vhZ-ERrDx5wcd5Xr6fl75Klnybk';
+    <script>
+        const API_BASE_URL   = "https://ani-kanri.onrender.com";
+        const CURRENT_SEASON = '2026-spring';
+        const ANNICT_TOKEN   = 'xM12QcwCJtWXmLP3vhZ-ERrDx5wcd5Xr6fl75Klnybk';
 
-let currentSortMode = 'season';
-let pendingDeleteId = null; 
+        var currentSortMode = 'season';
+        var pendingDeleteId = null;
 
-// ページ読み込み時にログイン状態を確認
-window.onload = function() {
-    checkLoginStatus();
-};
+        window.onload = function() { checkLoginStatus(); };
 
-// ログイン状態によって画面表示を切り替える関数
-function checkLoginStatus() {
-    const googleId = localStorage.getItem('googleId');
-    const savedName = localStorage.getItem('username');
-    const loggedInView = document.getElementById('profile-logged-in');
-    const loggedOutView = document.getElementById('profile-logged-out');
+        function checkLoginStatus() {
+            var googleId  = localStorage.getItem('googleId');
+            var savedName = localStorage.getItem('username');
+            var loggedInView  = document.getElementById('profile-logged-in');
+            var loggedOutView = document.getElementById('profile-logged-out');
+            if (!loggedInView || !loggedOutView) return;
 
-    if (!loggedInView || !loggedOutView) return;
-
-    if (googleId && savedName && savedName !== 'ゲストユーザー') {
-        loggedInView.style.display = 'flex';
-        loggedOutView.style.display = 'none';
-        loadUserProfile();
-        loadAnimeRecordsFromServer();
-    } else {
-        loggedInView.style.display = 'none';
-        loggedOutView.style.display = 'flex';
-        
-        localStorage.removeItem('watchedAnimes');
-        localStorage.removeItem('animeEpisodes');
-        localStorage.removeItem('animeRatings');
-        renderWatchedList(); 
-    }
-}
-
-// ログアウト処理
-function logout() {
-    if (confirm('ログアウトしますか？')) {
-        localStorage.clear();
-        checkLoginStatus();
-    }
-}
-
-// Googleログイン成功時に呼び出される窓口
-function handleCredentialResponse(response) {
-    const idToken = response.credential;
-
-    fetch(`${API_BASE_URL}/api/auth/google`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: idToken })
-    })
-    .then(res => {
-        if (!res.ok) throw new Error('サーバーでの認証に失敗しました');
-        return res.json();
-    })
-    .then(data => {
-        localStorage.setItem('googleId', data.googleId); 
-        localStorage.setItem('username', data.username);
-        localStorage.setItem('userAvatar', data.avatar || 'https://cdn-icons-png.flaticon.com/512/847/847969.png');
-        
-        alert('ログインに成功しました！🎉');
-        checkLoginStatus();
-    })
-    .catch(error => {
-        console.error('ログインエラー:', error);
-        alert('ログイン処理中にエラーが発生しました。');
-    });
-}
-
-// サーバーからデータを取得してマイページに展開する関数
-function loadAnimeRecordsFromServer() {
-    const googleId = localStorage.getItem('googleId');
-    if (!googleId) return;
-
-    const annictURL = `https://api.annict.com/v1/works?filter_season=${CURRENT_SEASON}&sort_watchers_count=desc&per_page=15&access_token=${ANNICT_TOKEN}`;
-
-    Promise.all([
-        fetch(`${API_BASE_URL}/api/records/${googleId}`).then(res => res.json()).catch(() => ({ records: [] })),
-        fetch(`${API_BASE_URL}/api/ratings/${googleId}`).then(res => res.json()).catch(() => ({ ratings: [] })),
-        fetch(annictURL).then(res => res.json()).catch(() => ({ works: [] }))
-    ])
-    .then(([recordData, ratingData, annictData]) => {
-        let savedEpisodes = JSON.parse(localStorage.getItem('animeEpisodes')) || {};
-        let newWatchedList = []; 
-        const apiWorks = annictData.works || [];
-
-        // 1. 視聴記録（records）のパース
-        const records = recordData.records || recordData.data || [];
-        if (Array.isArray(records)) {
-            records.forEach(record => {
-                const title = (record.animeTitle || record.anime_title || record.title || '').trim();
-                if (!title) return;
-
-                savedEpisodes[title] = record.episode || savedEpisodes[title] || '1話';
-
-                if (!newWatchedList.some(item => item.title === title)) {
-                    const finalId = record.animeId || record.anime_id || record.id || String(Math.floor(Math.random() * 100000));
-                    let finalImage = record.animeImage || record.anime_image || record.image || '';
-                    
-                    if (!finalImage && apiWorks.length > 0) {
-                        const found = apiWorks.find(a => a.title === title || String(a.id) === String(finalId));
-                        if (found && found.images) {
-                            finalImage = found.images.recommended_url || found.images.facebook?.og_image_url || '';
-                        }
-                    }
-
-                    newWatchedList.push({
-                        id: String(finalId),
-                        title: title,
-                        image: finalImage,
-                        season_name: record.seasonName || record.season_name || '',
-                        media_name: record.mediaName || record.media_name || '',
-                        episodes_count: record.episodesCount || record.episodes_count || 0
-                    });
-                }
-            });
-        }
-
-        // 2. 評価データ（ratings）のパース
-        const ratings = ratingData.ratings || ratingData.data || [];
-        if (Array.isArray(ratings)) {
-            ratings.forEach(rating => {
-                const title = (rating.animeTitle || rating.anime_title || rating.title || '').trim();
-                if (!title) return;
-
-                if (!savedEpisodes[title]) savedEpisodes[title] = '全話'; 
-
-                if (!newWatchedList.some(item => item.title === title)) {
-                    const finalId = rating.animeId || rating.anime_id || rating.id || String(Math.floor(Math.random() * 100000));
-                    let finalImage = rating.animeImage || rating.anime_image || rating.image || '';
-                    
-                    if (!finalImage && apiWorks.length > 0) {
-                        const found = apiWorks.find(a => a.title === title || String(a.id) === String(finalId));
-                        if (found && found.images) {
-                            finalImage = found.images.recommended_url || found.images.facebook?.og_image_url || '';
-                        }
-                    }
-
-                    newWatchedList.push({
-                        id: String(finalId),
-                        title: title,
-                        image: finalImage,
-                        season_name: rating.seasonName || rating.season_name || '',
-                        media_name: rating.mediaName || rating.media_name || '',
-                        episodes_count: rating.episodesCount || rating.episodes_count || 0
-                    });
-                }
-            });
-        }
-
-        localStorage.setItem('animeEpisodes', JSON.stringify(savedEpisodes));
-        localStorage.setItem('watchedAnimes', JSON.stringify(newWatchedList));
-
-        renderWatchedList();
-    })
-    .catch(err => console.error('マイページデータ同期失敗:', err));
-}
-
-function loadUserProfile() {
-    const savedName = localStorage.getItem('username');
-    const savedAvatar = localStorage.getItem('userAvatar') || 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
-    
-    const nameEl = document.getElementById('mypage-username');
-    const avatarEl = document.getElementById('mypage-avatar');
-    
-    if (nameEl) nameEl.innerText = savedName;
-    if (avatarEl) avatarEl.src = savedAvatar;
-}
-
-function triggerAvatarUpload() {
-    document.getElementById('avatar-file-input').click();
-}
-
-function handleAvatarSelection(input) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const base64Image = e.target.result;
-            document.getElementById('mypage-avatar').src = base64Image;
-            localStorage.setItem('userAvatar', base64Image);
-        };
-        reader.readAsDataURL(input.files[0]);
-    }
-}
-
-function changeSort(mode) {
-    currentSortMode = mode;
-    document.getElementById('sort-season').classList.toggle('active', mode === 'season');
-    document.getElementById('sort-name').classList.toggle('active', mode === 'name');
-    renderWatchedList();
-}
-
-function calculateWatchTime() {
-    const watchedList = JSON.parse(localStorage.getItem('watchedAnimes')) || [];
-    const savedEpisodes = JSON.parse(localStorage.getItem('animeEpisodes')) || {};
-    let totalMinutes = 0;
-
-    watchedList.forEach(anime => {
-        if (!anime.title) return;
-        const progress = savedEpisodes[anime.title];
-        const titleLower = anime.title.toLowerCase();
-        const isMovie = anime.media_name === 'movie' ||
-                        anime.episodes_count === 1 ||
-                        anime.title.includes('劇場版') || 
-                        anime.title.includes('映画') || 
-                        titleLower.includes('movie') ||
-                        titleLower.includes('film');
-
-        if (isMovie) {
-            if (progress === '視聴完了') totalMinutes += 120;
-        } else {
-            if (progress === '全話') {
-                const episodeCount = anime.episodes_count || 12;
-                totalMinutes += episodeCount * 24;
-            } else if (progress) {
-                const match = String(progress).match(/(\d+)/);
-                if (match) totalMinutes += Number(match[1]) * 24;
-            }
-        }
-    });
-
-    const hours = Math.floor(totalMinutes / 60);
-    document.getElementById('total-watch-time').textContent = `${hours.toLocaleString()}時間`;
-
-    let rank = 'アニメ初心者';
-    if (hours > 100)  rank = 'アニメ好き';
-    if (hours > 500)  rank = 'アニメマスター';
-    if (hours > 1000) rank = 'アニメ仙人';
-    if (hours > 3000) rank = '伝説のオタク';
-
-    document.getElementById('watch-rank').textContent = rank;
-}
-
-function formatSeasonText(seasonStr) {
-    if (!seasonStr) return '時期未設定・その他映画など';
-    const parts = seasonStr.split('-');
-    if (parts.length !== 2) return seasonStr;
-    const termMap = { 'spring': '春', 'summer': '夏', 'autumn': '秋', 'winter': '冬' };
-    return `${parts[0]}年 ${termMap[parts[1]] || parts[1]}シーズン`;
-}
-
-function getKanaGroup(anime) {
-    let text = anime.title_kana || anime.title || '';
-    if (!text) return 'その他';
-    text = text.replace(/[\u30a1-\u30f6]/g, function(match) {
-        return String.fromCharCode(match.charCodeAt(0) - 0x60);
-    });
-    const firstChar = text.charAt(0);
-    if (/[a-zA-Z]/.test(firstChar)) return 'A - Z (アルファベット順)';
-    const collator = new Intl.Collator('ja', { sensitivity: 'base' });
-    if (collator.compare(firstChar, 'あ') >= 0 && collator.compare(firstChar, 'か') < 0) return 'あ 行';
-    if (collator.compare(firstChar, 'か') >= 0 && collator.compare(firstChar, 'さ') < 0) return 'か 行';
-    if (collator.compare(firstChar, 'さ') >= 0 && collator.compare(firstChar, 'た') < 0) return 'さ 行';
-    if (collator.compare(firstChar, 'た') >= 0 && collator.compare(firstChar, 'な') < 0) return 'た 行';
-    if (collator.compare(firstChar, 'な') >= 0 && collator.compare(firstChar, 'は') < 0) return 'な 行';
-    if (collator.compare(firstChar, 'は') >= 0 && collator.compare(firstChar, 'ま') < 0) return 'は 行';
-    if (collator.compare(firstChar, 'ま') >= 0 && collator.compare(firstChar, 'や') < 0) return 'ま 行';
-    if (collator.compare(firstChar, 'や') >= 0 && collator.compare(firstChar, 'ら') < 0) return 'や 行';
-    if (collator.compare(firstChar, 'ら') >= 0 && collator.compare(firstChar, 'わ') < 0) return 'ら 行';
-    if (collator.compare(firstChar, 'わ') >= 0 && collator.compare(firstChar, 'ん') <= 0) return 'わ 行';
-    return 'その他';
-}
-
-// カードリストを画面に描画する
-function renderWatchedList() {
-    const listContainer = document.getElementById('mypage-watched-list');
-    if (!listContainer) return;
-
-    let watchedList = JSON.parse(localStorage.getItem('watchedAnimes')) || [];
-    const savedEpisodes = JSON.parse(localStorage.getItem('animeEpisodes')) || {};
-
-    calculateWatchTime();
-
-    if (watchedList.length === 0) {
-        listContainer.innerHTML = '<p style="color: #64748b; font-weight: bold; grid-column: 1/-1; text-align: center; padding: 40px 0;">まだ登録された映画・アニメはありません。</p>';
-        return;
-    }
-
-    if (currentSortMode === 'name') {
-        const collator = new Intl.Collator('ja', { sensitivity: 'base', numeric: true });
-        watchedList.sort((a, b) => collator.compare(a.title_kana || a.title || '', b.title_kana || b.title || ''));
-    } else {
-        watchedList.sort((a, b) => (b.season_name || '').localeCompare(a.season_name || ''));
-    }
-
-    listContainer.innerHTML = '';
-    let currentGroupHeader = '';
-
-    watchedList.forEach(anime => {
-        if (!anime.title) return; 
-
-        let targetGroup = currentSortMode === 'season' ? formatSeasonText(anime.season_name) : getKanaGroup(anime);
-
-        if (targetGroup !== currentGroupHeader) {
-            currentGroupHeader = targetGroup;
-            listContainer.insertAdjacentHTML('beforeend', `<div class="group-divider">📌 ${currentGroupHeader}</div>`);
-        }
-
-        const titleLower = anime.title.toLowerCase();
-        const isMovie = anime.media_name === 'movie' || 
-                        anime.episodes_count === 1 ||
-                        anime.title.includes('劇場版') || 
-                        anime.title.includes('映画') || 
-                        titleLower.includes('movie') ||
-                        titleLower.includes('film');
-
-        const imageUrl = anime.image && anime.image.trim() !== '' ? anime.image : 'https://placehold.co/300x400?text=NO+IMAGE';
-        
-        let imageHTML = `
-            <div class="anime-img-wrapper">
-                <img src="${imageUrl}" class="watched-img" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'; this.parentNode.insertAdjacentHTML('beforeend', '<div class=\'img-placeholder\'>NO IMAGE</div>')">
-            </div>
-        `;
-        
-        const currentEp = savedEpisodes[anime.title] || (isMovie ? '視聴完了' : '1話');
-
-        let controlHTML = '';
-        if (isMovie) {
-            controlHTML = `
-                <select class="movie-status-select" onchange="updateEpisode('${anime.id}', '${anime.title.replace(/'/g, "\\'")}', this.value)">
-                    <option value="視聴完了" ${currentEp === '視聴完了' ? 'selected' : ''}>🎬 視聴完了</option>
-                    <option value="未視聴" ${currentEp === '未視聴' ? 'selected' : ''}>⏳ 見てない</option>
-                </select>
-            `;
-        } else {
-            const maxEpisodes = anime.episodes_count && anime.episodes_count > 0 ? anime.episodes_count : 12;
-            let optionsHTML = `<option value="全話" ${currentEp === '全話' ? 'selected' : ''}>全話視聴</option>`;
-            for (let i = 1; i <= maxEpisodes; i++) {
-                optionsHTML += `<option value="${i}話" ${currentEp === `${i}話` ? 'selected' : ''}>${i}話まで見た</option>`;
-            }
-            controlHTML = `
-                <select class="episode-select" onchange="updateEpisode('${anime.id}', '${anime.title.replace(/'/g, "\\'")}', this.value)">
-                    ${optionsHTML}
-                </select>
-            `;
-        }
-
-        const cardHTML = `
-            <div class="watched-card" id="card-${anime.id}">
-                <span class="media-badge ${isMovie ? 'badge-movie' : 'badge-anime'}">${isMovie ? '映画' : 'アニメ'}</span>
-                <div>
-                    ${imageHTML}
-                    <div class="card-body">
-                        <p class="watched-title" title="${anime.title}">${anime.title}</p>
-                    </div>
-                </div>
-                <div style="padding: 0 12px 12px 12px;">
-                    ${controlHTML}
-                    <div id="toast-${anime.id}" class="save-toast">✓ 変更を保存しました</div>
-                    <button class="btn-item-delete" onclick="openDeleteModal('${anime.id}', '${anime.title.replace(/'/g, "\\'")}')">❌ リストから消去</button>
-                </div>
-            </div>
-        `;
-        listContainer.insertAdjacentHTML('beforeend', cardHTML);
-    });
-}
-
-// エピソード数の更新
-function updateEpisode(animeId, animeTitle, value) {
-    const googleId = localStorage.getItem('googleId');
-    
-    let savedEpisodes = JSON.parse(localStorage.getItem('animeEpisodes')) || {};
-    savedEpisodes[animeTitle] = value;
-    localStorage.setItem('animeEpisodes', JSON.stringify(savedEpisodes));
-    calculateWatchTime();
-
-    if (googleId) {
-        const watchedList = JSON.parse(localStorage.getItem('watchedAnimes')) || [];
-        const currentAnime = watchedList.find(item => String(item.id) === String(animeId)) || {};
-
-        fetch(`${API_BASE_URL}/api/records`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                googleId: googleId,
-                animeId: animeId,
-                animeTitle: animeTitle,
-                animeImage: currentAnime.image || '',
-                seasonName: currentAnime.season_name || '',
-                episode: value
-            })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                console.log(`[DB保存完了] ${animeTitle} -> ${value}`);
-                const toast = document.getElementById(`toast-${animeId}`);
-                if (toast) {
-                    toast.classList.add('show');
-                    setTimeout(() => { toast.classList.remove('show'); }, 1800);
-                }
-            }
-        })
-        .catch(err => console.error('サーバー保存エラー:', err));
-    }
-}
-
-function openDeleteModal(id, title) {
-    pendingDeleteId = id; 
-    document.getElementById('modal-anime-title').innerText = title;
-    document.getElementById('delete-modal-overlay').classList.add('active');
-    
-    document.getElementById('modal-confirm-trigger').onclick = function() {
-        executeItemDeletion();
-    };
-}
-
-function closeDeleteModal() {
-    document.getElementById('delete-modal-overlay').classList.remove('active');
-    pendingDeleteId = null;
-}
-
-// 完全な同期削除
-function executeItemDeletion() {
-    if (!pendingDeleteId) return;
-
-    const googleId = localStorage.getItem('googleId');
-    const modalButton = document.getElementById('modal-confirm-trigger');
-    
-    if (modalButton) {
-        modalButton.innerText = "消去中...";
-        modalButton.disabled = true;
-    }
-
-    if (googleId) {
-        fetch(`${API_BASE_URL}/api/records/${googleId}/${pendingDeleteId}`, {
-            method: 'DELETE'
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success' || data.message) {
-                console.log('🌐 サーバー側のデータを正常に消去しました');
-                proceedLocalDeletion();
+            if (googleId && savedName && savedName !== 'ゲストユーザー') {
+                loggedInView.style.display  = 'flex';
+                loggedOutView.style.display = 'none';
+                loadUserProfile();
+                loadAnimeRecordsFromServer();
             } else {
-                alert('サーバーとの同期に失敗しました。もう一度お試しください。');
-                resetModalButton();
+                loggedInView.style.display  = 'none';
+                loggedOutView.style.display = 'flex';
+                // ★ 修正1: ログアウト時に animeEpisodes は消さない
+                //    watchedAnimes と animeRatings だけ消去してリストを非表示に
+                localStorage.removeItem('watchedAnimes');
+                localStorage.removeItem('animeRatings');
+                // animeEpisodes はそのまま保持（話数の記録を残す）
+                renderWatchedList();
             }
-        })
-        .catch(err => {
-            console.error('サーバー同期削除エラー:', err);
-            proceedLocalDeletion();
-        });
-    } else {
-        proceedLocalDeletion();
-    }
-
-    function proceedLocalDeletion() {
-        let watchedList = JSON.parse(localStorage.getItem('watchedAnimes')) || [];
-        const targetAnime = watchedList.find(item => String(item.id) === String(pendingDeleteId));
-
-        watchedList = watchedList.filter(item => String(item.id) !== String(pendingDeleteId));
-        localStorage.setItem('watchedAnimes', JSON.stringify(watchedList));
-
-        let ratings = JSON.parse(localStorage.getItem('animeRatings')) || {};
-        if (ratings[pendingDeleteId]) delete ratings[pendingDeleteId];
-        localStorage.setItem('animeRatings', JSON.stringify(ratings));
-
-        let savedEpisodes = JSON.parse(localStorage.getItem('animeEpisodes')) || {};
-        if (targetAnime && targetAnime.title) {
-            delete savedEpisodes[targetAnime.title];
         }
-        localStorage.setItem('animeEpisodes', JSON.stringify(savedEpisodes));
 
-        closeDeleteModal(); 
-        renderWatchedList(); 
-        resetModalButton();
-    }
-
-    function resetModalButton() {
-        if (modalButton) {
-            modalButton.innerText = "リストから消去";
-            modalButton.disabled = false;
+        function logout() {
+            if (confirm('ログアウトしますか？')) {
+                // ★ 修正1: ログアウト時も animeEpisodes は消去しない
+                var episodes = localStorage.getItem('animeEpisodes');
+                localStorage.clear();
+                if (episodes) localStorage.setItem('animeEpisodes', episodes);
+                checkLoginStatus();
+            }
         }
-    }
-}
-</script>
+
+        window.handleCredentialResponse = function(response) {
+            fetch(API_BASE_URL + '/api/auth/google', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: response.credential })
+            })
+            .then(function(res) {
+                if (!res.ok) throw new Error('サーバーエラー: ' + res.status);
+                return res.json();
+            })
+            .then(function(data) {
+                if (!data.googleId) throw new Error('googleIdがレスポンスにありません');
+                localStorage.setItem('googleId',    data.googleId);
+                localStorage.setItem('username',    data.username);
+                localStorage.setItem('userAvatar',  data.avatar || 'https://cdn-icons-png.flaticon.com/512/847/847969.png');
+                alert('ログインに成功しました！🎉');
+                checkLoginStatus();
+            })
+            .catch(function(err) {
+                console.error('[ログインエラー]', err);
+                alert('ログイン処理中にエラーが発生しました。\n詳細: ' + err.message);
+            });
+        };
+
+        function loadAnimeRecordsFromServer() {
+            var googleId = localStorage.getItem('googleId');
+            if (!googleId) return;
+
+            var annictURL = 'https://api.annict.com/v1/works?filter_season=' + CURRENT_SEASON + '&sort_watchers_count=desc&per_page=15&access_token=' + ANNICT_TOKEN;
+
+            Promise.all([
+                fetch(API_BASE_URL + '/api/records/' + googleId).then(function(r) { return r.json(); }).catch(function() { return {}; }),
+                fetch(API_BASE_URL + '/api/ratings/' + googleId).then(function(r) { return r.json(); }).catch(function() { return {}; }),
+                fetch(annictURL).then(function(r) { return r.json(); }).catch(function() { return { works: [] }; })
+            ]).then(function(results) {
+                var recordData = results[0], ratingData = results[1], annictData = results[2];
+                console.log('[データ取得] recordData:', recordData);
+                console.log('[データ取得] ratingData:', ratingData);
+
+                var savedEpisodes = JSON.parse(localStorage.getItem('animeEpisodes')) || {};
+                var newWatchedList = [];
+                var apiWorks = annictData.works || [];
+
+                function extractArray(data) {
+                    if (Array.isArray(data))                    return data;
+                    if (data && Array.isArray(data.records))    return data.records;
+                    if (data && Array.isArray(data.ratings))    return data.ratings;
+                    if (data && Array.isArray(data.data))       return data.data;
+                    return [];
+                }
+
+                function findImage(id, title, rawImage) {
+                    if (rawImage && rawImage.trim()) return rawImage;
+                    var found = apiWorks.find(function(a) { return a.title === title || String(a.id) === String(id); });
+                    if (found && found.images) return found.images.recommended_url || (found.images.facebook && found.images.facebook.og_image_url) || '';
+                    return '';
+                }
+
+                function addToList(item, fallbackEp) {
+                    var title = (item.animeTitle || item.anime_title || item.title || '').trim();
+                    if (!title || title.includes('不明')) return;
+                    // サーバーのepisodeがあればそれを優先、なければローカルを維持
+                    if (item.episode) savedEpisodes[title] = item.episode;
+                    else if (!savedEpisodes[title]) savedEpisodes[title] = fallbackEp;
+                    if (newWatchedList.some(function(w) { return w.title === title; })) return;
+                    var id  = String(item.animeId || item.anime_id || item.id || Math.floor(Math.random() * 100000));
+                    var raw = item.animeImage || item.anime_image || item.image || '';
+                    newWatchedList.push({
+                        id:             id,
+                        title:          title,
+                        image:          findImage(id, title, raw),
+                        season_name:    item.seasonName || item.season_name || '',
+                        media_name:     item.mediaName  || item.media_name  || '',
+                        episodes_count: item.episodesCount || item.episodes_count || 0
+                    });
+                }
+
+                extractArray(recordData).forEach(function(r) { addToList(r, '1話'); });
+                extractArray(ratingData).forEach(function(r) { addToList(r, '全話'); });
+
+                localStorage.setItem('animeEpisodes', JSON.stringify(savedEpisodes));
+                localStorage.setItem('watchedAnimes', JSON.stringify(newWatchedList));
+                renderWatchedList();
+            })
+            .catch(function(err) { console.error('[同期失敗]', err); });
+        }
+
+        function loadUserProfile() {
+            var savedName   = localStorage.getItem('username');
+            var savedAvatar = localStorage.getItem('userAvatar') || 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
+            var nameEl   = document.getElementById('mypage-username');
+            var avatarEl = document.getElementById('mypage-avatar');
+            if (nameEl)   nameEl.innerText = savedName;
+            if (avatarEl) avatarEl.src     = savedAvatar;
+        }
+
+        function triggerAvatarUpload() { document.getElementById('avatar-file-input').click(); }
+
+        function handleAvatarSelection(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('mypage-avatar').src = e.target.result;
+                    localStorage.setItem('userAvatar', e.target.result);
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function changeSort(mode) {
+            currentSortMode = mode;
+            document.getElementById('sort-season').classList.toggle('active', mode === 'season');
+            document.getElementById('sort-name').classList.toggle('active', mode === 'name');
+            renderWatchedList();
+        }
+
+        function calculateWatchTime() {
+            var watchedList   = JSON.parse(localStorage.getItem('watchedAnimes'))  || [];
+            var savedEpisodes = JSON.parse(localStorage.getItem('animeEpisodes')) || {};
+            var totalMinutes  = 0;
+
+            watchedList.forEach(function(anime) {
+                if (!anime.title) return;
+                var progress   = savedEpisodes[anime.title];
+                var titleLower = anime.title.toLowerCase();
+                var isMovie    = anime.media_name === 'movie' || anime.episodes_count === 1
+                              || anime.title.includes('劇場版') || anime.title.includes('映画')
+                              || titleLower.includes('movie') || titleLower.includes('film');
+                if (isMovie) {
+                    if (progress === '視聴完了') totalMinutes += 120;
+                } else {
+                    if (progress === '全話') {
+                        totalMinutes += (anime.episodes_count || 12) * 24;
+                    } else if (progress) {
+                        var m = String(progress).match(/(\d+)/);
+                        if (m) totalMinutes += Number(m[1]) * 24;
+                    }
+                }
+            });
+
+            var hours = Math.floor(totalMinutes / 60);
+            document.getElementById('total-watch-time').textContent = hours.toLocaleString() + '時間';
+            var rank = 'アニメ初心者';
+            if (hours > 100)  rank = 'アニメ好き';
+            if (hours > 500)  rank = 'アニメマスター';
+            if (hours > 1000) rank = 'アニメ仙人';
+            if (hours > 3000) rank = '伝説のオタク';
+            document.getElementById('watch-rank').textContent = rank;
+        }
+
+        function formatSeasonText(s) {
+            if (!s) return '時期未設定・その他映画など';
+            var p = s.split('-');
+            if (p.length !== 2) return s;
+            var m = { spring:'春', summer:'夏', autumn:'秋', winter:'冬' };
+            return p[0] + '年 ' + (m[p[1]] || p[1]) + 'シーズン';
+        }
+
+        function getKanaGroup(anime) {
+            var text = (anime.title_kana || anime.title || '');
+            if (!text) return 'その他';
+            text = text.replace(/[\u30a1-\u30f6]/g, function(c) { return String.fromCharCode(c.charCodeAt(0) - 0x60); });
+            var ch = text.charAt(0);
+            if (/[a-zA-Z]/.test(ch)) return 'A - Z (アルファベット順)';
+            var c = new Intl.Collator('ja', { sensitivity: 'base' });
+            if (c.compare(ch,'あ')>=0 && c.compare(ch,'か')<0) return 'あ 行';
+            if (c.compare(ch,'か')>=0 && c.compare(ch,'さ')<0) return 'か 行';
+            if (c.compare(ch,'さ')>=0 && c.compare(ch,'た')<0) return 'さ 行';
+            if (c.compare(ch,'た')>=0 && c.compare(ch,'な')<0) return 'た 行';
+            if (c.compare(ch,'な')>=0 && c.compare(ch,'は')<0) return 'な 行';
+            if (c.compare(ch,'は')>=0 && c.compare(ch,'ま')<0) return 'は 行';
+            if (c.compare(ch,'ま')>=0 && c.compare(ch,'や')<0) return 'ま 行';
+            if (c.compare(ch,'や')>=0 && c.compare(ch,'ら')<0) return 'や 行';
+            if (c.compare(ch,'ら')>=0 && c.compare(ch,'わ')<0) return 'ら 行';
+            if (c.compare(ch,'わ')>=0 && c.compare(ch,'ん')<=0) return 'わ 行';
+            return 'その他';
+        }
+
+        function renderWatchedList() {
+            var listContainer = document.getElementById('mypage-watched-list');
+            if (!listContainer) return;
+
+            var watchedList   = JSON.parse(localStorage.getItem('watchedAnimes'))  || [];
+            var savedEpisodes = JSON.parse(localStorage.getItem('animeEpisodes')) || {};
+
+            calculateWatchTime();
+
+            if (watchedList.length === 0) {
+                listContainer.innerHTML = '<p style="color:#64748b;font-weight:bold;grid-column:1/-1;text-align:center;padding:40px 0;">まだ登録された映画・アニメはありません。</p>';
+                return;
+            }
+
+            if (currentSortMode === 'name') {
+                var col = new Intl.Collator('ja', { sensitivity:'base', numeric:true });
+                watchedList.sort(function(a,b) { return col.compare(a.title_kana||a.title||'', b.title_kana||b.title||''); });
+            } else {
+                watchedList.sort(function(a,b) { return (b.season_name||'').localeCompare(a.season_name||''); });
+            }
+
+            listContainer.innerHTML = '';
+            var currentGroupHeader = '';
+
+            watchedList.forEach(function(anime) {
+                if (!anime.title) return;
+
+                var targetGroup = currentSortMode === 'season' ? formatSeasonText(anime.season_name) : getKanaGroup(anime);
+                if (targetGroup !== currentGroupHeader) {
+                    currentGroupHeader = targetGroup;
+                    listContainer.insertAdjacentHTML('beforeend', '<div class="group-divider">📌 ' + currentGroupHeader + '</div>');
+                }
+
+                var titleLower = anime.title.toLowerCase();
+                var isMovie = anime.media_name === 'movie' || anime.episodes_count === 1
+                           || anime.title.includes('劇場版') || anime.title.includes('映画')
+                           || titleLower.includes('movie') || titleLower.includes('film');
+
+                var imageUrl  = (anime.image && anime.image.trim()) ? anime.image : 'https://placehold.co/300x400?text=NO+IMAGE';
+                var currentEp = savedEpisodes[anime.title] || (isMovie ? '視聴完了' : '1話');
+
+                // ★ 修正2: <input type=number> をやめて <select> に統一
+                var controlHTML = '';
+                var safeId    = anime.id;
+                var safeTitle = anime.title.replace(/'/g, "\\'");
+
+                if (isMovie) {
+                    controlHTML =
+                        '<select class="movie-status-select" onchange="updateEpisode(\'' + safeId + '\',\'' + safeTitle + '\',this.value)">' +
+                            '<option value="視聴完了"' + (currentEp === '視聴完了' ? ' selected' : '') + '>🎬 視聴完了</option>' +
+                            '<option value="未視聴"'   + (currentEp === '未視聴'   ? ' selected' : '') + '>⏳ 見ていない</option>' +
+                        '</select>';
+                } else {
+                    // ★ episodes_count が正しく入っていない場合でも最低12話を保証
+                    var maxEp = (anime.episodes_count && anime.episodes_count > 0) ? anime.episodes_count : 12;
+                    var opts  = '<option value="全話"' + (currentEp === '全話' ? ' selected' : '') + '>✅ 全話視聴</option>';
+                    for (var i = 1; i <= maxEp; i++) {
+                        var val = i + '話';
+                        opts += '<option value="' + val + '"' + (currentEp === val ? ' selected' : '') + '>' + i + '話まで見た</option>';
+                    }
+                    controlHTML =
+                        '<select class="episode-select" onchange="updateEpisode(\'' + safeId + '\',\'' + safeTitle + '\',this.value)">' +
+                            opts +
+                        '</select>';
+                }
+
+                listContainer.insertAdjacentHTML('beforeend',
+                    '<div class="watched-card" id="card-' + anime.id + '">' +
+                        '<span class="media-badge ' + (isMovie ? 'badge-movie' : 'badge-anime') + '">' + (isMovie ? '映画' : 'アニメ') + '</span>' +
+                        '<div>' +
+                            '<div class="anime-img-wrapper">' +
+                                '<img src="' + imageUrl + '" class="watched-img" loading="lazy" referrerpolicy="no-referrer"' +
+                                     ' onerror="this.style.display=\'none\';this.parentNode.insertAdjacentHTML(\'beforeend\',\'<div class=\\\'img-placeholder\\\'>NO IMAGE</div>\')">' +
+                            '</div>' +
+                            '<div class="card-body">' +
+                                '<p class="watched-title" title="' + anime.title + '">' + anime.title + '</p>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div style="padding:0 12px 12px 12px;">' +
+                            controlHTML +
+                            '<div id="toast-' + anime.id + '" class="save-toast">✓ 変更を保存しました</div>' +
+                            '<button class="btn-item-delete" onclick="openDeleteModal(\'' + safeId + '\',\'' + safeTitle + '\')">❌ リストから消去</button>' +
+                        '</div>' +
+                    '</div>'
+                );
+            });
+        }
+
+        function updateEpisode(animeId, animeTitle, value) {
+            var googleId = localStorage.getItem('googleId');
+            var savedEpisodes = JSON.parse(localStorage.getItem('animeEpisodes')) || {};
+            savedEpisodes[animeTitle] = value;
+            localStorage.setItem('animeEpisodes', JSON.stringify(savedEpisodes));
+            calculateWatchTime();
+
+            if (googleId) {
+                var watchedList  = JSON.parse(localStorage.getItem('watchedAnimes')) || [];
+                var currentAnime = watchedList.find(function(w) { return String(w.id) === String(animeId); }) || {};
+                fetch(API_BASE_URL + '/api/records', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        googleId:    googleId,
+                        animeId:     animeId,
+                        anime_id:    animeId,
+                        animeTitle:  animeTitle,
+                        anime_title: animeTitle,
+                        animeImage:  currentAnime.image      || '',
+                        anime_image: currentAnime.image      || '',
+                        seasonName:  currentAnime.season_name || '',
+                        season_name: currentAnime.season_name || '',
+                        episode:     value
+                    })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.status === 'success') {
+                        var toast = document.getElementById('toast-' + animeId);
+                        if (toast) { toast.classList.add('show'); setTimeout(function() { toast.classList.remove('show'); }, 1800); }
+                    }
+                })
+                .catch(function(e) { console.error('[保存エラー]', e); });
+            }
+        }
+
+        function openDeleteModal(id, title) {
+            pendingDeleteId = id;
+            document.getElementById('modal-anime-title').innerText = title;
+            document.getElementById('delete-modal-overlay').classList.add('active');
+            document.getElementById('modal-confirm-trigger').onclick = executeItemDeletion;
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('delete-modal-overlay').classList.remove('active');
+            pendingDeleteId = null;
+        }
+
+        function executeItemDeletion() {
+            if (!pendingDeleteId) return;
+            var googleId    = localStorage.getItem('googleId');
+            var modalButton = document.getElementById('modal-confirm-trigger');
+            if (modalButton) { modalButton.innerText = "消去中..."; modalButton.disabled = true; }
+
+            function proceedLocal() {
+                var watchedList  = JSON.parse(localStorage.getItem('watchedAnimes')) || [];
+                var targetAnime  = watchedList.find(function(w) { return String(w.id) === String(pendingDeleteId); });
+                watchedList      = watchedList.filter(function(w) { return String(w.id) !== String(pendingDeleteId); });
+                localStorage.setItem('watchedAnimes', JSON.stringify(watchedList));
+
+                var ratings = JSON.parse(localStorage.getItem('animeRatings')) || {};
+                if (ratings[pendingDeleteId]) { delete ratings[pendingDeleteId]; localStorage.setItem('animeRatings', JSON.stringify(ratings)); }
+
+                // ★ 削除時は animeEpisodes からも消す（その作品のみ）
+                var savedEpisodes = JSON.parse(localStorage.getItem('animeEpisodes')) || {};
+                if (targetAnime && targetAnime.title) { delete savedEpisodes[targetAnime.title]; }
+                localStorage.setItem('animeEpisodes', JSON.stringify(savedEpisodes));
+
+                closeDeleteModal();
+                renderWatchedList();
+                if (modalButton) { modalButton.innerText = "リストから消去"; modalButton.disabled = false; }
+            }
+
+            if (googleId) {
+                fetch(API_BASE_URL + '/api/records/' + googleId + '/' + pendingDeleteId, { method: 'DELETE' })
+                .then(function(r) { return r.json(); })
+                .then(function() { proceedLocal(); })
+                .catch(function() { proceedLocal(); });
+            } else {
+                proceedLocal();
+            }
+        }
+    </script>
 </body>
 </html>
