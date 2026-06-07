@@ -291,28 +291,77 @@
                 function addToList(item, fallbackEp) {
                     var title = (item.animeTitle || item.anime_title || item.title || '').trim();
                     if (!title || title.includes('不明')) return;
-                    // サーバーのepisodeがあればそれを優先、なければローカルを維持
                     if (item.episode) savedEpisodes[title] = item.episode;
                     else if (!savedEpisodes[title]) savedEpisodes[title] = fallbackEp;
                     if (newWatchedList.some(function(w) { return w.title === title; })) return;
                     var id  = String(item.animeId || item.anime_id || item.id || Math.floor(Math.random() * 100000));
                     var raw = item.animeImage || item.anime_image || item.image || '';
+                    // Annictの今期データから話数・画像を補完
+                    var annictMatch = apiWorks.find(function(a) { return a.title === title || String(a.id) === id; });
+                    var epCount = item.episodesCount || item.episodes_count || 0;
+                    var img     = findImage(id, title, raw);
+                    if (annictMatch) {
+                        if (annictMatch.episodes_count > 0) epCount = annictMatch.episodes_count;
+                        if (!img && annictMatch.images) img = annictMatch.images.recommended_url || (annictMatch.images.facebook && annictMatch.images.facebook.og_image_url) || '';
+                    }
                     newWatchedList.push({
                         id:             id,
                         title:          title,
-                        image:          findImage(id, title, raw),
+                        image:          img,
                         season_name:    item.seasonName || item.season_name || '',
                         media_name:     item.mediaName  || item.media_name  || '',
-                        episodes_count: item.episodesCount || item.episodes_count || 0
+                        episodes_count: epCount
                     });
                 }
 
                 extractArray(recordData).forEach(function(r) { addToList(r, '1話'); });
                 extractArray(ratingData).forEach(function(r) { addToList(r, '全話'); });
 
-                localStorage.setItem('animeEpisodes', JSON.stringify(savedEpisodes));
-                localStorage.setItem('watchedAnimes', JSON.stringify(newWatchedList));
-                renderWatchedList();
+                // ★ Annictで話数が不明な作品をIDで個別取得して補完
+                var missingIds = newWatchedList
+                    .filter(function(a) { return a.episodes_count === 0 && !isMovieByTitle(a.title); })
+                    .map(function(a) { return a.id; });
+
+                function isMovieByTitle(t) {
+                    var tl = t.toLowerCase();
+                    return t.includes('劇場版') || t.includes('映画') || tl.includes('movie') || tl.includes('film');
+                }
+
+                function saveAndRender() {
+                    localStorage.setItem('animeEpisodes', JSON.stringify(savedEpisodes));
+                    localStorage.setItem('watchedAnimes', JSON.stringify(newWatchedList));
+                    renderWatchedList();
+                }
+
+                if (missingIds.length === 0) {
+                    saveAndRender();
+                    return;
+                }
+
+                // 不明な作品を最大20件ずつAnnictに問い合わせ
+                var fetchPromises = missingIds.slice(0, 20).map(function(animeId) {
+                    return fetch('https://api.annict.com/v1/works?filter_ids=' + animeId + '&access_token=' + ANNICT_TOKEN)
+                        .then(function(r) { return r.json(); })
+                        .catch(function() { return { works: [] }; });
+                });
+
+                Promise.all(fetchPromises).then(function(responses) {
+                    responses.forEach(function(data) {
+                        (data.works || []).forEach(function(work) {
+                            var idx = newWatchedList.findIndex(function(a) { return String(a.id) === String(work.id); });
+                            if (idx === -1) return;
+                            if (work.episodes_count > 0) {
+                                newWatchedList[idx].episodes_count = work.episodes_count;
+                            }
+                            if (!newWatchedList[idx].image && work.images) {
+                                newWatchedList[idx].image = work.images.recommended_url
+                                    || (work.images.facebook && work.images.facebook.og_image_url)
+                                    || '';
+                            }
+                        });
+                    });
+                    saveAndRender();
+                }).catch(function() { saveAndRender(); });
             })
             .catch(function(err) { console.error('[同期失敗]', err); });
         }
@@ -461,9 +510,13 @@
                             '<option value="未視聴"'   + (currentEp === '未視聴'   ? ' selected' : '') + '>⏳ 見ていない</option>' +
                         '</select>';
                 } else {
-                    // ★ episodes_count が正しく入っていない場合でも最低12話を保証
-                    var maxEp = (anime.episodes_count && anime.episodes_count > 0) ? anime.episodes_count : 12;
-                    var opts  = '<option value="全話"' + (currentEp === '全話' ? ' selected' : '') + '>✅ 全話視聴</option>';
+                    // 話数が取得できている場合はその話数まで、不明な場合は50話まで表示
+                    // （50話あれば長期アニメも大抵カバーできる）
+                    var maxEp = (anime.episodes_count && anime.episodes_count > 0) ? anime.episodes_count : 50;
+                    var epLabel = (anime.episodes_count && anime.episodes_count > 0)
+                        ? '✅ 全' + maxEp + '話視聴'
+                        : '✅ 全話視聴';
+                    var opts  = '<option value="全話"' + (currentEp === '全話' ? ' selected' : '') + '>' + epLabel + '</option>';
                     for (var i = 1; i <= maxEp; i++) {
                         var val = i + '話';
                         opts += '<option value="' + val + '"' + (currentEp === val ? ' selected' : '') + '>' + i + '話まで見た</option>';
